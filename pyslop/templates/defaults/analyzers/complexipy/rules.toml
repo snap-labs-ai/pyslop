@@ -1,0 +1,6 @@
+# Complexipy — cognitive complexity
+
+[rules.complexipy]
+name = "cognitive-complexity"
+fix = "Extract cohesive branches into named pure helper functions that each own one responsibility. Use early-return guards to flatten nesting instead of deeply nested blocks. Replace case-based branching with a dispatch dict. Do not create single-caller wrappers that merely relocate complexity to satisfy the threshold."
+doc-links = ["https://github.com/rohaquinlop/complexipy"]

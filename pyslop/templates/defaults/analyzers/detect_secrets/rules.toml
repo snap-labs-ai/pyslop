@@ -1,0 +1,3 @@
+[rules.secrets]
+name = "Hardcoded secret"
+fix = "Replace the hardcoded secret with an environment variable or secrets manager reference."

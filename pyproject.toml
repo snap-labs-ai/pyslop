@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyslop"
+version = "0.1.0"
+description = "AXI-first CLI that aggregates Python static analysis findings for AI agents"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.11"
+authors = [{ name = "Snap Labs" }]
+dependencies = [
+    "typer>=0.25.1,<0.26",
+    "click>=8.3.3,<9",
+]
+
+[project.urls]
+Homepage = "https://github.com/snap-labs-ai/pyslop"
+Repository = "https://github.com/snap-labs-ai/pyslop"
+Issues = "https://github.com/snap-labs-ai/pyslop/issues"
+
+[project.optional-dependencies]
+analyzers = [
+  "ruff",
+  "pylint",
+  "mypy",
+  "vulture",
+  "complexipy",
+  "detect-secrets",
+]
+
+[project.scripts]
+pyslop = "pyslop.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["pyslop*"]
+
+[tool.setuptools.package-data]
+pyslop = ["templates/defaults/**/*"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+addopts = "--import-mode=prepend"
+
+[dependency-groups]
+dev = ["pytest>=8.0"]

@@ -1,0 +1,6 @@
+# Vulture — dead code detection
+
+[rules.vulture]
+name = "unused-code"
+fix = "Remove the dead code. If the symbol is used externally (e.g., by a framework, decorator, or dynamic import), add it to `vulture_whitelist.py` (next to your vulture config or at repo root). Simulate usage in valid Python: import the module and reference the symbol (e.g., `from mymodule import MyClass; MyClass.my_method`). You can auto-generate a starting whitelist with `vulture . --make-whitelist > .pyslop/analyzers/vulture_whitelist.py`. Prefix unused variables with `_` or use `del var` to signal intentional disuse."
+doc-links = ["https://github.com/jendrikseipp/vulture"]

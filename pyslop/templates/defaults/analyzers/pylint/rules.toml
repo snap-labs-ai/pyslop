@@ -1,0 +1,6 @@
+# Pylint rules — keyed by symbol name (what pylint JSON output emits)
+
+[rules.cyclic-import]
+name = "cyclic-import"
+fix = "Break the cycle by moving shared types into a standalone types module imported by both sides, or by deferring the import inside the function that needs it."
+doc-links = ["https://pylint.readthedocs.io/en/latest/user_guide/messages/refactor/cyclic-import.html"]

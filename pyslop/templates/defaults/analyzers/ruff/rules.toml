@@ -1,0 +1,377 @@
+# Ruff — structural / complexity rules
+# PLR09xx (pylint refactor via ruff), C901 (mccabe), PLR2004, B, E, F, SIM, RET, C4, FA, TID, UP, ERA, BLE, ARG, PIE
+
+[rules.ruff-PLR0913]
+name = "too-many-arguments"
+fix = "Group related arguments into a typed container (dataclass, TypedDict). If arguments serve different concerns, split the function along those boundaries. Bias towards deep modules: maximize leverage by hiding complex behavior behind a minimal interface (1-3 entry points), rather than exposing shallow functions with many parameters."
+doc-links = ["https://docs.astral.sh/ruff/rules/too-many-arguments/"]
+
+[rules.ruff-PLR0911]
+name = "too-many-return-statements"
+fix = "Resolve conditions early with guard clauses, then return from a single clear path. If parallel conditions have distinct returns, they may be separate responsibilities that belong in separate functions. Drop elif after a return."
+doc-links = ["https://docs.astral.sh/ruff/rules/too-many-return-statements/"]
+
+[rules.ruff-PLR0912]
+name = "too-many-branches"
+fix = "Flatten nested conditionals with early-return guards. Replace case-based branching with a dispatch dict or strategy mapping. Separate data transformation from control flow — build the data first, then act on it."
+doc-links = ["https://docs.astral.sh/ruff/rules/too-many-branches/"]
+
+[rules.ruff-PLR0914]
+name = "too-many-locals"
+fix = "Extract sequential phases (parse, validate, transform, persist) into focused helpers. Move cohesive intermediate values that are produced and consumed together into the helper that owns them. Each helper must encapsulate a distinct responsibility — do not create single-caller wrappers that merely relocate variables."
+doc-links = ["https://docs.astral.sh/ruff/rules/too-many-locals/"]
+
+[rules.ruff-PLR0915]
+name = "too-many-statements"
+fix = "Split the function into smaller steps that each own one responsibility. Extract self-contained phases into pure helpers. The parent becomes a coordinator calling phases in sequence. Do not extract single-caller wrappers that just relocate statements to satisfy the threshold."
+doc-links = ["https://docs.astral.sh/ruff/rules/too-many-statements/"]
+
+[rules.ruff-C901]
+name = "complex-structure"
+fix = "Extract cohesive branches into named helpers until the control flow reads top-down. Convert nested validation into guard clauses that return or raise early. Replace case-based branching with a dispatch dict. Reduce complexity at the source — do not introduce unnecessary abstraction layers."
+doc-links = ["https://docs.astral.sh/ruff/rules/complex-structure/"]
+
+[rules.ruff-PLR2004]
+name = "magic-value-used-in-comparison"
+fix = "Name magic literals using a constant, Enum, or StrEnum rather than inlining bare values in comparisons."
+doc-links = ["https://docs.astral.sh/ruff/rules/magic-value-comparison/"]
+
+# E — pycodestyle errors
+
+[rules.ruff-E101]
+name = "indentation-contains-mixed-spaces-and-tabs"
+fix = "Standardise indentation to spaces only."
+doc-links = ["https://docs.astral.sh/ruff/rules/mixed-spaces-and-tabs/"]
+
+[rules.ruff-E402]
+name = "module-import-not-at-top-of-file"
+fix = "Move imports to module scope at the top of the file. If an import is deferred to avoid an import cycle, break the cycle by moving shared types, constants, or pure helpers into a third module that both sides depend on."
+doc-links = ["https://docs.astral.sh/ruff/rules/module-import-not-at-top-of-file/"]
+
+[rules.ruff-E711]
+name = "none-comparison"
+fix = "Use `is None` or `is not None` instead of `== None` or `!= None`."
+doc-links = ["https://docs.astral.sh/ruff/rules/none-comparison/"]
+
+[rules.ruff-E712]
+name = "true-false-comparison"
+fix = "Use `if value:` or `if not value:` instead of comparing to True/False."
+doc-links = ["https://docs.astral.sh/ruff/rules/true-false-comparison/"]
+
+[rules.ruff-E721]
+name = "type-comparison"
+fix = "Use `isinstance()` instead of comparing types with `==`."
+doc-links = ["https://docs.astral.sh/ruff/rules/type-comparison/"]
+
+[rules.ruff-E722]
+name = "bare-except"
+fix = "Catch a specific exception type instead of bare `except:`."
+doc-links = ["https://docs.astral.sh/ruff/rules/bare-except/"]
+
+[rules.ruff-E741]
+name = "ambiguous-variable-name"
+fix = "Rename the variable to a descriptive name that avoids single-character ambiguity (l, O, I)."
+doc-links = ["https://docs.astral.sh/ruff/rules/ambiguous-variable-name/"]
+
+# F — pyflakes
+
+[rules.ruff-F401]
+name = "unused-import"
+fix = "Remove the unused import. If needed for re-export, add an explicit `__all__`"
+doc-links = ["https://docs.astral.sh/ruff/rules/unused-import/"]
+
+[rules.ruff-F811]
+name = "redefined-unused-name"
+fix = "Remove or rename the first definition that is being shadowed."
+doc-links = ["https://docs.astral.sh/ruff/rules/redefined-while-unused/"]
+
+[rules.ruff-F841]
+name = "local-variable-is-assigned-but-never-used"
+fix = "Remove the unused variable or prefix with `_` if it is intentionally discarded."
+doc-links = ["https://docs.astral.sh/ruff/rules/unused-variable/"]
+
+[rules.ruff-F821]
+name = "undefined-name"
+fix = "Add the missing import or define the name before use."
+doc-links = ["https://docs.astral.sh/ruff/rules/undefined-name/"]
+
+# PL — pylint rules enforced through ruff
+
+[rules.ruff-PLE0302]
+name = "unexpected-special-method-signature"
+fix = "Match the expected dunder method signature."
+doc-links = ["https://docs.astral.sh/ruff/rules/unexpected-special-method-signature/"]
+
+[rules.ruff-PLW0602]
+name = "global-variable-not-assigned"
+fix = "Remove the `global` declaration or assign a value to the variable."
+doc-links = ["https://docs.astral.sh/ruff/rules/global-variable-not-assigned/"]
+
+[rules.ruff-PLW0603]
+name = "global-statement"
+fix = "Pass the value as a parameter or use a module-level constant instead of `global`."
+doc-links = ["https://docs.astral.sh/ruff/rules/global-statement/"]
+
+[rules.ruff-PLW1508]
+name = "invalid-envvar-default"
+fix = "Use a string default for `os.environ.get()` — environment variables are always strings."
+doc-links = ["https://docs.astral.sh/ruff/rules/invalid-envvar-default/"]
+
+# B — flake8-bugbear
+
+[rules.ruff-B006]
+name = "mutable-argument-default"
+fix = "Replace the mutable default (list, dict, set) with `None` and create it inside the function body."
+doc-links = ["https://docs.astral.sh/ruff/rules/mutable-argument-default/"]
+
+[rules.ruff-B007]
+name = "unused-loop-control-variable"
+fix = "Rename the unused loop variable to `_` to signal it is intentionally discarded."
+doc-links = ["https://docs.astral.sh/ruff/rules/unused-loop-control-variable/"]
+
+[rules.ruff-B009]
+name = "get-attr-with-constant"
+fix = "Use direct attribute access (`obj.attr`) instead of `getattr(obj, 'attr')`."
+doc-links = ["https://docs.astral.sh/ruff/rules/get-attr-with-constant/"]
+
+[rules.ruff-B010]
+name = "set-attr-with-constant"
+fix = "Use direct attribute assignment (`obj.attr = val`) instead of `setattr(obj, 'attr', val)`."
+doc-links = ["https://docs.astral.sh/ruff/rules/set-attr-with-constant/"]
+
+[rules.ruff-B018]
+name = "useless-expression"
+fix = "Remove the expression or assign its result. Standalone expressions with no side effects are dead code."
+doc-links = ["https://docs.astral.sh/ruff/rules/useless-expression/"]
+
+[rules.ruff-B904]
+name = "raise-without-from-inside-except"
+fix = "Add `from exc` (or `from None`) to the `raise` statement inside an `except` block to preserve the exception chain."
+doc-links = ["https://docs.astral.sh/ruff/rules/raise-without-from-inside-except/"]
+
+# SIM — flake8-simplify
+
+[rules.ruff-SIM102]
+name = "collapsible-if"
+fix = "Merge nested `if` statements into a single `if` with `and`."
+doc-links = ["https://docs.astral.sh/ruff/rules/collapsible-if/"]
+
+[rules.ruff-SIM105]
+name = "suppressible-exception"
+fix = "Replace try/except/pass with `contextlib.suppress(ExcType)`."
+doc-links = ["https://docs.astral.sh/ruff/rules/suppressible-exception/"]
+
+[rules.ruff-SIM108]
+name = "if-else-block-instead-of-if-exp"
+fix = "Use a conditional expression (`x = a if cond else b`) when the if/else block is a simple assignment."
+doc-links = ["https://docs.astral.sh/ruff/rules/if-else-block-instead-of-if-exp/"]
+
+[rules.ruff-SIM110]
+name = "reimplemented-builtin"
+fix = "Replace the manual loop with the equivalent builtin (`any()`, `all()`, etc.)."
+doc-links = ["https://docs.astral.sh/ruff/rules/reimplemented-builtin/"]
+
+[rules.ruff-SIM115]
+name = "open-file-with-context-handler"
+fix = "Use a `with` statement to ensure the file handle is closed."
+doc-links = ["https://docs.astral.sh/ruff/rules/open-file-with-context-handler/"]
+
+[rules.ruff-SIM117]
+name = "multiple-with-statements"
+fix = "Combine nested `with` statements into a single `with` line."
+doc-links = ["https://docs.astral.sh/ruff/rules/multiple-with-statements/"]
+
+[rules.ruff-SIM118]
+name = "in-dict-keys"
+fix = "Use `key in dict` instead of `key in dict.keys()`."
+doc-links = ["https://docs.astral.sh/ruff/rules/in-dict-keys/"]
+
+# RET — flake8-return
+
+[rules.ruff-RET504]
+name = "unnecessary-assign"
+fix = "Return the value directly instead of assigning to a variable and then immediately returning it."
+doc-links = ["https://docs.astral.sh/ruff/rules/unnecessary-assign/"]
+
+[rules.ruff-RET505]
+name = "superfluous-else-return"
+fix = "Remove the `else` after a `return` — the code after the `if` block already runs only when the condition is false."
+doc-links = ["https://docs.astral.sh/ruff/rules/superfluous-else-return/"]
+
+[rules.ruff-RET506]
+name = "superfluous-else-raise"
+fix = "Remove the `else` after a `raise` — the code after the `if` block already runs only when the condition is false."
+doc-links = ["https://docs.astral.sh/ruff/rules/superfluous-else-raise/"]
+
+# C4 — flake8-comprehensions
+
+[rules.ruff-C400]
+name = "unnecessary-generator-list"
+fix = "Use a list comprehension instead of `list(generator)`."
+doc-links = ["https://docs.astral.sh/ruff/rules/unnecessary-generator-list/"]
+
+[rules.ruff-C401]
+name = "unnecessary-generator-set"
+fix = "Use a set comprehension instead of `set(generator)`."
+doc-links = ["https://docs.astral.sh/ruff/rules/unnecessary-generator-set/"]
+
+[rules.ruff-C408]
+name = "unnecessary-collection-call"
+fix = "Use a literal (`{}`, `[]`) instead of `dict()` or `list()`."
+doc-links = ["https://docs.astral.sh/ruff/rules/unnecessary-collection-call/"]
+
+[rules.ruff-C416]
+name = "unnecessary-comprehension"
+fix = "Replace the identity comprehension with `list(iterable)` or `dict(iterable)`."
+doc-links = ["https://docs.astral.sh/ruff/rules/unnecessary-comprehension/"]
+
+# PERF — perflint
+
+[rules.ruff-PERF101]
+name = "unnecessary-list-cast"
+fix = "Iterate the existing iterable directly instead of wrapping it in `list(...)` in a loop."
+doc-links = ["https://docs.astral.sh/ruff/rules/unnecessary-list-cast/"]
+
+[rules.ruff-PERF102]
+name = "incorrect-dict-iterator"
+fix = "If only one side is used, replace `dict.items()` with `dict.keys()` or `dict.values()` to avoid building unnecessary key/value tuples."
+doc-links = ["https://docs.astral.sh/ruff/rules/incorrect-dict-iterator/"]
+
+[rules.ruff-PERF203]
+name = "try-except-in-loop"
+fix = "Move `try/except` outside the loop when possible, or use Look Before You Leap checks (for example `dict.get`) to avoid per-iteration exception handling."
+doc-links = ["https://docs.astral.sh/ruff/rules/try-except-in-loop/"]
+
+[rules.ruff-PERF401]
+name = "manual-list-comprehension"
+fix = "Replace loop-and-append list construction with a list comprehension; when adding to an existing list, use `extend(...)` with a generator."
+doc-links = ["https://docs.astral.sh/ruff/rules/manual-list-comprehension/"]
+
+[rules.ruff-PERF402]
+name = "manual-list-copy"
+fix = "Replace manual loop-based list copying with `list(existing_list)` or `existing_list.copy()`."
+doc-links = ["https://docs.astral.sh/ruff/rules/manual-list-copy/"]
+
+[rules.ruff-PERF403]
+name = "manual-dict-comprehension"
+fix = "Replace loop-based dictionary population with a dictionary comprehension; when adding to an existing dict, use `update(...)`."
+doc-links = ["https://docs.astral.sh/ruff/rules/manual-dict-comprehension/"]
+
+# FA — flake8-future-annotations
+
+[rules.ruff-FA100]
+name = "missing-future-annotations-import"
+fix = "Add `from __future__ import annotations` at the top of the file to enable PEP 604 union syntax."
+doc-links = ["https://docs.astral.sh/ruff/rules/future-rewritable-type-annotation/"]
+
+# TID — flake8-tidy-imports
+
+[rules.ruff-TID252]
+name = "relative-imports"
+fix = "Replace relative imports with absolute imports."
+doc-links = ["https://docs.astral.sh/ruff/rules/relative-imports/"]
+
+# UP — pyupgrade
+
+[rules.ruff-UP004]
+name = "useless-object-inheritance"
+fix = "Declare the class without inheriting from `object` — every class is a new-style class."
+doc-links = ["https://docs.astral.sh/ruff/rules/useless-object-inheritance/"]
+
+[rules.ruff-UP006]
+name = "non-pep585-annotation"
+fix = "Annotate collections with builtin generics: `list[str]`, `dict[str, int]`, `tuple[int, ...]`, `set[str]`."
+doc-links = ["https://docs.astral.sh/ruff/rules/non-pep585-annotation/"]
+
+[rules.ruff-UP007]
+name = "non-pep604-annotation"
+fix = "Write unions with `|`: `str | int` rather than `typing.Union[str, int]`."
+doc-links = ["https://docs.astral.sh/ruff/rules/non-pep604-annotation/"]
+
+[rules.ruff-UP008]
+name = "super-call-with-parameters"
+fix = "Call `super()` with no arguments; the compiler already binds the class and instance."
+doc-links = ["https://docs.astral.sh/ruff/rules/super-call-with-parameters/"]
+
+[rules.ruff-UP010]
+name = "unnecessary-future-import"
+fix = "Drop `__future__` imports that are already in the language for this Python version."
+doc-links = ["https://docs.astral.sh/ruff/rules/unnecessary-future-import/"]
+
+[rules.ruff-UP018]
+name = "native-literals"
+fix = "Write the literal directly (`\"x\"`, `b\"x\"`, `1`) — wrapping a literal in `str()`, `bytes()`, or `int()` is a no-op."
+doc-links = ["https://docs.astral.sh/ruff/rules/native-literals/"]
+
+[rules.ruff-UP032]
+name = "f-string"
+fix = "Rewrite the `str.format` call as an f-string."
+doc-links = ["https://docs.astral.sh/ruff/rules/f-string/"]
+
+[rules.ruff-UP035]
+name = "deprecated-import"
+fix = "Import the name from its current module: builtin generics (`list`, `dict`, `tuple`, `set`, `type`) and `collections.abc` members in place of the `typing` aliases."
+doc-links = ["https://docs.astral.sh/ruff/rules/deprecated-import/"]
+
+[rules.ruff-UP040]
+name = "non-pep695-type-alias"
+fix = "Declare the alias with `type Name = ...` (PEP 695)."
+doc-links = ["https://docs.astral.sh/ruff/rules/non-pep695-type-alias/"]
+
+[rules.ruff-UP042]
+name = "replace-str-enum"
+fix = "Subclass `StrEnum` instead of mixing `str` with `Enum`."
+doc-links = ["https://docs.astral.sh/ruff/rules/replace-str-enum/"]
+
+[rules.ruff-UP045]
+name = "non-pep604-annotation-optional"
+fix = "Write optional types as `T | None` rather than `Optional[T]`."
+doc-links = ["https://docs.astral.sh/ruff/rules/non-pep604-annotation-optional/"]
+
+# ERA — eradicate
+
+[rules.ruff-ERA001]
+name = "commented-out-code"
+fix = "Delete the commented-out code. Keep a short comment only when it states a non-obvious invariant, gotcha, or why."
+doc-links = ["https://docs.astral.sh/ruff/rules/commented-out-code/"]
+
+# BLE — flake8-blind-except
+
+[rules.ruff-BLE001]
+name = "blind-except"
+fix = "Catch the specific exception types the call can raise. Let unexpected failures propagate, or translate them with `raise ... from exc` into a typed error the caller already handles."
+doc-links = ["https://docs.astral.sh/ruff/rules/blind-except/"]
+
+# ARG — flake8-unused-arguments
+
+[rules.ruff-ARG001]
+name = "unused-function-argument"
+fix = "Use the parameter in the function body, or remove it from the signature. Prefix with `_` when the name is required by a callback or framework contract."
+doc-links = ["https://docs.astral.sh/ruff/rules/unused-function-argument/"]
+
+[rules.ruff-ARG002]
+name = "unused-method-argument"
+fix = "Use the parameter in the method body, or remove it from the signature. Prefix with `_` when the name is required by a parent, protocol, or framework contract."
+doc-links = ["https://docs.astral.sh/ruff/rules/unused-method-argument/"]
+
+[rules.ruff-ARG003]
+name = "unused-class-method-argument"
+fix = "Use the parameter in the classmethod body, or remove it from the signature. Prefix with `_` when the name is required by a parent, protocol, or framework contract."
+doc-links = ["https://docs.astral.sh/ruff/rules/unused-class-method-argument/"]
+
+[rules.ruff-ARG004]
+name = "unused-static-method-argument"
+fix = "Use the parameter in the staticmethod body, or remove it from the signature. Prefix with `_` when the name is required by a parent, protocol, or framework contract."
+doc-links = ["https://docs.astral.sh/ruff/rules/unused-static-method-argument/"]
+
+[rules.ruff-ARG005]
+name = "unused-lambda-argument"
+fix = "Use the parameter in the lambda body, or drop it from the lambda signature. Prefix with `_` when the callable contract requires the slot."
+doc-links = ["https://docs.astral.sh/ruff/rules/unused-lambda-argument/"]
+
+# PIE — flake8-pie
+
+[rules.ruff-PIE790]
+name = "unnecessary-placeholder"
+fix = "Remove the redundant `pass` or `...`. A docstring or a real statement already gives the block a body; keep `...` only as the sole body of a protocol, stub, or abstract method."
+doc-links = ["https://docs.astral.sh/ruff/rules/unnecessary-placeholder/"]

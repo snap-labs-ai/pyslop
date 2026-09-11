@@ -1,0 +1,82 @@
+# Mypy rules — error codes not disabled in pyproject.toml [tool.mypy]
+# Disabled: operator, name-defined
+
+[rules."mypy-error[arg-type]"]
+name = "incompatible-argument-type"
+fix = "Fix the value at the boundary: validate or parse external data into a typed model, then pass that typed value. Prefer isinstance checks, TypeGuard helpers, or schema validation. If signatures disagree, refactor them to align. Use typing.cast only as a last resort after runtime checks prove the type."
+doc-links = ["https://mypy.readthedocs.io/en/stable/error_code_list.html#check-argument-types-arg-type"]
+
+[rules."mypy-error[assignment]"]
+name = "incompatible-assignment"
+fix = "Make both sides truly the same type: tighten the right-hand side with guards or normalization, or correct the variable annotation to the real domain type. Do not widen to Any, object, or broad Optional just to silence mypy. Reserve typing.cast for unavoidable dynamic boundaries with runtime evidence."
+doc-links = ["https://mypy.readthedocs.io/en/stable/error_code_list.html#check-types-in-assignment-statement-assignment"]
+
+[rules."mypy-error[return-value]"]
+name = "incompatible-return-value"
+fix = "Return the declared type by construction: normalize before returning, or split branches so each returns a compatible concrete type. Prefer updating implementation over weakening the function contract. Avoid cast-based returns unless bridging a dynamic boundary with runtime validation."
+doc-links = ["https://mypy.readthedocs.io/en/stable/error_code_list.html#check-return-type-return-value"]
+
+[rules."mypy-error[attr-defined]"]
+name = "attribute-not-defined"
+fix = "Check spelling and ensure the object is the expected type. Prove attribute presence with narrowing (isinstance/TypeGuard), Protocols, or TypedDict/Pydantic models at the boundary. Avoid using cast to bypass missing-attribute checks."
+doc-links = ["https://mypy.readthedocs.io/en/stable/error_code_list.html#check-that-attribute-exists-attr-defined"]
+
+[rules."mypy-error[override]"]
+name = "incompatible-override"
+fix = "Match the parent method's signature. If the override needs a different type, use a Protocol or redesign the inheritance."
+doc-links = ["https://mypy.readthedocs.io/en/stable/error_code_list.html#check-that-overrides-are-compatible-override"]
+
+[rules."mypy-error[union-attr]"]
+name = "union-attribute-access"
+fix = "Narrow the union before attribute access using early returns, isinstance checks, discriminated unions, or TypeGuard helpers. After narrowing, access attributes directly. Do not use cast to skip union narrowing."
+doc-links = ["https://mypy.readthedocs.io/en/stable/error_code_list.html#check-that-attribute-exists-in-each-union-item-union-attr"]
+
+[rules."mypy-error[index]"]
+name = "invalid-index-type"
+fix = "Ensure the index expression matches the container's expected key type."
+doc-links = ["https://mypy.readthedocs.io/en/stable/error_code_list.html#check-indexing-operations-index"]
+
+[rules."mypy-error[call-overload]"]
+name = "no-matching-overload"
+fix = "Match one overload exactly by normalizing or narrowing arguments before the call. If caller and overloads disagree systematically, refactor the API/types instead of forcing calls with Any or cast."
+doc-links = ["https://mypy.readthedocs.io/en/stable/error_code_list.html#check-arguments-when-calling-an-overloaded-function-call-overload"]
+
+[rules."mypy-error[misc]"]
+name = "misc-type-error"
+fix = "Read the full error message for the specific issue. Do not silence with `type: ignore` without understanding the root cause."
+doc-links = ["https://mypy.readthedocs.io/en/stable/error_code_list.html#report-miscellaneous-errors-misc"]
+
+[rules."mypy-error[no-untyped-def]"]
+name = "untyped-function-definition"
+fix = "Add type annotations for all parameters and the return type. Avoid using Any — use specific types or generics."
+doc-links = ["https://mypy.readthedocs.io/en/stable/error_code_list.html#check-that-every-function-has-an-annotation-no-untyped-def"]
+
+[rules."mypy-error[var-annotated]"]
+name = "variable-needs-annotation"
+fix = "Add an explicit type annotation on the variable."
+doc-links = ["https://mypy.readthedocs.io/en/stable/error_code_list.html#check-that-each-name-is-defined-var-annotated"]
+
+[rules."mypy-error[type-arg]"]
+name = "missing-type-argument"
+fix = "Provide explicit type parameters for generic types (e.g., `list[int]` instead of `list`)."
+doc-links = ["https://mypy.readthedocs.io/en/stable/error_code_list.html#check-type-arguments-type-arg"]
+
+[rules."mypy-error[valid-type]"]
+name = "invalid-type"
+fix = "Use a valid type expression. Check imports and that the referenced type is correctly defined."
+doc-links = ["https://mypy.readthedocs.io/en/stable/error_code_list.html#check-type-validity-valid-type"]
+
+[rules."mypy-error[syntax]"]
+name = "syntax-error"
+fix = "Fix the syntax error indicated by the message. Ensure the file is valid Python."
+doc-links = ["https://mypy.readthedocs.io/en/stable/error_code_list.html"]
+
+[rules."mypy-error[import]"]
+name = "import-error"
+fix = "Ensure the module is installed and the import path is correct."
+doc-links = ["https://mypy.readthedocs.io/en/stable/error_code_list.html#check-that-imports-exist-import"]
+
+[rules."mypy-error[no-any-return]"]
+name = "no-any-return"
+fix = "Annotate the function return type explicitly and ensure the returned value has a concrete type, not Any."
+doc-links = ["https://mypy.readthedocs.io/en/stable/error_code_list.html#check-return-type-of-any-no-any-return"]

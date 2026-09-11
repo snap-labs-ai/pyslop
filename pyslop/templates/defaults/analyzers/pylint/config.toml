@@ -1,0 +1,20 @@
+[tool.pylint.main]
+ignore-paths = [
+  '(^|.*[\\/])alembic[\\/].*',
+  '(^|.*[\\/])scripts[\\/].*',
+  '(^|.*[\\/])tests[\\/].*',
+  '(^|.*[\\/])test_.*\\.py$',
+  '(^|.*[\\/]).*_test\\.py$',
+]
+
+[tool.pylint.format]
+max-module-lines = 500
+
+[tool.pylint.design]
+max-attributes = 50
+
+[tool.pylint."messages control"]
+disable = ["all"]
+enable = [
+  "cyclic-import",
+]

@@ -1,0 +1,229 @@
+# Packaged regex rules. Overlay fix/name in pyslop.toml without copying this file.
+
+ignore = [
+  "**/.*/**",
+  ".*",
+  "**/.*",
+  "*.toml",
+  "**/*.toml",
+  "*.yml",
+  "**/*.yml",
+  "*.yaml",
+  "**/*.yaml",
+  "*.md",
+  "**/*.md",
+  "*.txt",
+  "**/*.txt",
+  "uv.lock",
+  "**/uv.lock",
+  "pyslop_extensions/**",
+  "pyslop/**",
+]
+
+[rules."slop-words.todo"]
+name = "Trigger word: todo"
+fix = "Resolve the TODO before shipping."
+
+[rules."slop-words.todo".detect]
+kind = "regex"
+pattern = '(?i)(?:#\s*todo|//\s*todo)'
+
+[rules."slop-words.dead-code"]
+name = "Trigger word: dead code"
+fix = "Delete dead code."
+
+[rules."slop-words.dead-code".detect]
+kind = "regex"
+pattern = '(?i)(?<!\w)dead\ code(?!\w)'
+
+[rules."slop-words.cleanup-later"]
+name = "Trigger word: cleanup later"
+fix = "Do the cleanup now."
+
+[rules."slop-words.cleanup-later".detect]
+kind = "regex"
+pattern = '(?i)(?<!\w)cleanup\ later(?!\w)'
+
+[rules."slop-words.remove-later"]
+name = "Trigger word: remove later"
+fix = "Remove the temporary code now."
+
+[rules."slop-words.remove-later".detect]
+kind = "regex"
+pattern = '(?i)(?<!\w)remove\ later(?!\w)'
+
+[rules."slop-words.best-effort"]
+name = "Trigger word: best effort"
+fix = "Replace best-effort behavior with a tested success and failure contract."
+
+[rules."slop-words.best-effort".detect]
+kind = "regex"
+pattern = '(?i)(?<!\w)best\ effort(?!\w)'
+
+[rules."slop-words.backwards-compatibility"]
+name = "Trigger word: backwards compatibility"
+fix = "Prove the compatibility requirement with a test and remove unsupported compatibility code."
+
+[rules."slop-words.backwards-compatibility".detect]
+kind = "regex"
+pattern = '(?i)(?<!\w)backwards\ compatibility(?!\w)'
+
+[rules."slop-words.deprecated"]
+name = "Trigger word: deprecated"
+fix = "Replace deprecated usage with the current supported API."
+
+[rules."slop-words.deprecated".detect]
+kind = "regex"
+pattern = '(?i)(?<!\w)deprecated(?!\w)'
+
+[rules."slop-words.temporary"]
+name = "Trigger word: temporary"
+fix = "Replace temporary code with the intended implementation."
+
+[rules."slop-words.temporary".detect]
+kind = "regex"
+pattern = '(?i)(?<!\w)temporary(?!\w)'
+
+[rules."slop-words.workaround"]
+name = "Trigger word: workaround"
+fix = "Fix the root cause and remove the workaround."
+
+[rules."slop-words.workaround".detect]
+kind = "regex"
+pattern = '(?i)(?<!\w)workaround(?!\w)'
+
+[rules."slop-words.backcompat"]
+name = "Trigger word: backcompat"
+fix = "Prove the backward compatibility requirement with a test and remove unsupported compatibility code."
+
+[rules."slop-words.backcompat".detect]
+kind = "regex"
+pattern = '(?i)(?<!\w)backcompat(?!\w)'
+
+[rules."slop-words.obsolete"]
+name = "Trigger word: obsolete"
+fix = "Delete obsolete code."
+
+[rules."slop-words.obsolete".detect]
+kind = "regex"
+pattern = '(?i)(?<!\w)obsolete(?!\w)'
+
+[rules."slop-words.legacy"]
+name = "Trigger word: legacy"
+fix = "Prove the legacy support requirement with a test and remove stale paths."
+
+[rules."slop-words.legacy".detect]
+kind = "regex"
+pattern = '(?i)(?<!\w)legacy(?!\w)'
+
+[rules."slop-words.unused"]
+name = "Trigger word: unused"
+fix = "Remove unused code."
+
+[rules."slop-words.unused".detect]
+kind = "regex"
+pattern = '(?i)(?<!\w)unused(?!\w)'
+
+[rules."slop-words.fixme"]
+name = "Trigger word: fixme"
+fix = "Fix the issue before shipping."
+
+[rules."slop-words.fixme".detect]
+kind = "regex"
+pattern = '(?i)(?<!\w)fixme(?!\w)'
+
+[rules."slop-words.dummy"]
+name = "Trigger word: dummy"
+fix = "Replace dummy implementation with production behavior."
+
+[rules."slop-words.dummy".detect]
+kind = "regex"
+pattern = '(?i)(?<!\w)dummy(?!\w)'
+
+[rules."slop-words.compat"]
+name = "Trigger word: compat"
+fix = "Prove the compatibility requirement with a test and remove unsupported compatibility code."
+
+[rules."slop-words.compat".detect]
+kind = "regex"
+pattern = '(?i)(?<!\w)compat(?!\w)'
+
+[rules."slop-words.shim"]
+name = "Trigger word: shim"
+fix = "Replace the shim with the supported implementation."
+
+[rules."slop-words.shim".detect]
+kind = "regex"
+pattern = '(?i)(?<!\w)shim(?!\w)'
+
+[rules."slop-words.hack"]
+name = "Trigger word: hack"
+fix = "Replace hacks with a maintainable implementation."
+
+[rules."slop-words.hack".detect]
+kind = "regex"
+pattern = '(?i)(?<!\w)hack(?!\w)'
+
+[rules."slop-words.temp"]
+name = "Trigger word: temp"
+fix = "Replace temporary code with the intended implementation."
+
+[rules."slop-words.temp".detect]
+kind = "regex"
+pattern = '(?i)(?<!\w)temp(?!\w)'
+
+[rules."slop-words.debug"]
+name = "Trigger word: _debug_"
+fix = "Remove left over debugging instrumentation."
+
+[rules."slop-words.debug".detect]
+kind = "regex"
+pattern = '(?i)(?<!\w)_debug_(?!\w)'
+
+[rules."slop-words.debug-hypothesis"]
+name = "Trigger word: hypothesisId"
+fix = "Remove left over debugging instrumentation."
+
+[rules."slop-words.debug-hypothesis".detect]
+kind = "regex"
+pattern = '(?i)(?<!\w)hypothesisId(?!\w)'
+
+[rules."slop-words.localhost"]
+name = "127.0.0.1"
+fix = "Remove left over debugging instrumentation."
+
+[rules."slop-words.localhost".detect]
+kind = "regex"
+pattern = '(?i)(?<!\w)127\.0\.0\.1(?!\w)'
+
+[rules."slop-words.fallback"]
+name = "Trigger word: fallback"
+fix = "Make fallback behavior explicit and covered by a test."
+
+[rules."slop-words.fallback".detect]
+kind = "regex"
+pattern = '(?i)(?<!\w)fallback(?!\w)'
+
+[rules."slop-words.stale"]
+name = "Trigger word: stale"
+fix = "Refresh stale code to match current behavior."
+
+[rules."slop-words.stale".detect]
+kind = "regex"
+pattern = '(?i)(?<!\w)stale(?!\w)'
+
+[rules."slop-words.stub"]
+name = "Trigger word: stub"
+fix = "Replace stubs with implemented behavior."
+
+[rules."slop-words.stub".detect]
+kind = "regex"
+pattern = '(?i)(?<!\w)stub(?!\w)'
+
+[rules."slop-words.placeholder"]
+name = "Placeholder in TODO/stub context"
+fix = "Replace TODO/stub placeholder behavior with production behavior before shipping."
+
+[rules."slop-words.placeholder".detect]
+kind = "regex"
+pattern = '(?i)(?<!\w)placeholder(?!\w).*(?:todo|stub|not implemented)|(?:todo|stub|not implemented).*(?<!\w)placeholder(?!\w)'

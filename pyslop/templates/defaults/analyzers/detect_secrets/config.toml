@@ -1,0 +1,8 @@
+baseline = ""
+
+disable_plugins = [
+    "Base64HighEntropyString",
+    "HexHighEntropyString",
+    "KeywordDetector",
+    "IPPublicDetector",
+]
