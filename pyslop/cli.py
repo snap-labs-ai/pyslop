@@ -21,6 +21,8 @@ app = typer.Typer(
     add_completion=False,
     invoke_without_command=True,
     no_args_is_help=False,
+    rich_markup_mode=None,
+    pretty_exceptions_enable=False,
     help="Unified Python static analysis for AI slop.",
 )
 
