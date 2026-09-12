@@ -1,0 +1,3 @@
+[rules."pure-shim"]
+name = "Trivial pass-through shim"
+fix = "Replace callers with direct calls to the wrapped target, then remove the shim."

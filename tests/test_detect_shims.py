@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pytest
+
 from pyslop.runner import run
 from pyslop.scaffold import scaffold, scaffold_extensions
 from pyslop.types import RunOptions
@@ -7,6 +9,29 @@ from pyslop.types import RunOptions
 BUILTIN_DISABLE_LIST = (
     'disable = ["ruff", "pylint", "mypy", "vulture", "complexipy", "detect-secrets"]'
 )
+_REPO_ROOT = Path(__file__).resolve().parents[1]
+_TEMPLATE_DETECT_SHIMS = (
+    _REPO_ROOT / "pyslop/templates/defaults/pyslop_extensions/detect_shims"
+)
+_EXAMPLE_DETECT_SHIMS = _REPO_ROOT / "examples/pyslop_extensions/detect_shims"
+
+
+class TestExampleDetectShimsSnapshot:
+    # Why this test survives refactoring: examples/ is a published consumer snapshot of the packaged template.
+    def test_example_detect_shims_file_set_matches_packaged_template(self) -> None:
+        template_names = {path.name for path in _TEMPLATE_DETECT_SHIMS.iterdir()}
+        example_names = {path.name for path in _EXAMPLE_DETECT_SHIMS.iterdir()}
+
+        assert example_names == template_names
+
+    @pytest.mark.parametrize("file_name", ["__init__.py", "analyzer.py", "rules.toml"])
+    def test_example_detect_shims_file_matches_packaged_template(
+        self, file_name: str
+    ) -> None:
+        assert (
+            (_EXAMPLE_DETECT_SHIMS / file_name).read_bytes()
+            == (_TEMPLATE_DETECT_SHIMS / file_name).read_bytes()
+        )
 
 
 class TestScaffoldedDetectShimsExtension:

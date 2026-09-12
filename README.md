@@ -32,7 +32,7 @@ Install the bundled sample extension (protocol v1):
 pyslop extensions detect-shims
 ```
 
-See [docs/extensions.md](docs/extensions.md).
+See [docs/extensions.md](docs/extensions.md) and the consumer snapshot in [examples/](examples/).
 
 # CLI
 

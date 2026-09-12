@@ -1,0 +1,1 @@
+"""detect-shims extension package."""
