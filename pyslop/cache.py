@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 from pathlib import Path
 
 from pyslop.types import AnalyzerRunResult, Finding, INPUTS_FILENAMES, AnalyzerSpec
@@ -70,13 +71,17 @@ def _entry_path(
 
 def _repo_relative_posix(path: str, repo_root: Path) -> str:
     candidate = Path(path)
+    if not candidate.is_absolute():
+        return candidate.as_posix()
     root = repo_root.resolve()
-    if candidate.is_absolute():
-        try:
-            return candidate.resolve().relative_to(root).as_posix()
-        except ValueError:
-            return candidate.as_posix()
-    return candidate.as_posix()
+    resolved = candidate.resolve()
+    try:
+        relative = Path(os.path.relpath(resolved, root))
+    except ValueError:
+        return resolved.as_posix()
+    if relative.parts[:1] == ("..",):
+        return resolved.as_posix()
+    return relative.as_posix()
 
 
 def _file_bytes(repo_root: Path, file_path: str) -> bytes:
