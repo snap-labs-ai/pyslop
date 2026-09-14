@@ -1,7 +1,6 @@
 # This checkout. Host-repo copies live in examples/.
 # Tests mention slop on purpose (fixtures and expected rule ids).
-# Agent skill trees are not product code.
-exclude = ["tests/**", ".agents/**", ".claude/**"]
+exclude = ["tests/**"]
 
 [analyzers]
 disable = []

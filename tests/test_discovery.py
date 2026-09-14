@@ -9,6 +9,7 @@ from pyslop.discovery import (
     DiscoveryOptions,
     apply_excludes,
     discover_files,
+    is_dot_path,
 )
 
 
@@ -34,6 +35,16 @@ class TestApplyExcludes:
 
         # Assert
         assert filtered == files
+
+
+class TestIsDotPath:
+    # Why this test survives refactoring: hidden names and hidden parents must stay out of scans.
+    def test_is_dot_path_detects_hidden_files_and_directories(self) -> None:
+        assert is_dot_path(".env")
+        assert is_dot_path(".github/workflows/ci.yaml")
+        assert is_dot_path("pkg/.cache/tmp.py")
+        assert not is_dot_path("app/main.py")
+        assert not is_dot_path("app.module.py")
 
 
 class TestDiscoverFiles:
@@ -201,6 +212,53 @@ class TestDiscoverFiles:
         # Assert
         assert files == ["app/a.py", "scripts/audit.py"]
 
+    # Why this test survives refactoring: hidden files stay out of scans even with --no-exclude.
+    def test_discover_files_omits_dot_paths_even_with_no_exclude(
+        self, tmp_path: Path
+    ) -> None:
+        create_files(
+            tmp_path,
+            "app/a.py",
+            ".env",
+            ".github/workflows/ci.yaml",
+            ".venv/lib/site.py",
+            "app/.cache/tmp.py",
+        )
+
+        files = discover_files(
+            tmp_path,
+            DiscoveryOptions(all_files=True, no_exclude=True),
+            FailingGit().run,
+        )
+
+        assert files == ["app/a.py"]
+
+    # Why this test survives refactoring: git-listed hidden paths must not enter the scan set.
+    def test_discover_files_omits_dot_paths_from_git_listing(
+        self, tmp_path: Path
+    ) -> None:
+        create_files(
+            tmp_path, "app/main.py", ".pre-commit-config.yaml", ".github/ci.yaml"
+        )
+        executor = FakeGit(
+            {
+                (
+                    "git",
+                    "diff",
+                    "--name-only",
+                    "--diff-filter=d",
+                    "main...HEAD",
+                ): "app/main.py\n.pre-commit-config.yaml\n.github/ci.yaml\n",
+                ("git", "diff", "--name-only", "--diff-filter=d"): "",
+                ("git", "diff", "--cached", "--name-only", "--diff-filter=d"): "",
+                ("git", "ls-files", "--others", "--exclude-standard"): "",
+            }
+        )
+
+        files = discover_files(tmp_path, DiscoveryOptions(base="main"), executor.run)
+
+        assert files == ["app/main.py"]
+
     # Why this test survives refactoring: all-files discovery must expose all existing file types.
     def test_discover_files_all_files_includes_non_python_files(
         self, tmp_path: Path
@@ -272,6 +330,20 @@ class TestDiscoverFiles:
         # Assert
         assert files == ["app/a.py", "app/b.py", "backend/c.py"]
 
+    # Why this test survives refactoring: explicit --files still skip hidden names.
+    def test_discover_files_omits_explicit_dot_files_and_dirs(
+        self, tmp_path: Path
+    ) -> None:
+        create_files(tmp_path, "app/a.py", ".env", ".github/ci.yaml")
+
+        files = discover_files(
+            tmp_path,
+            DiscoveryOptions(files=("app/a.py", ".env", ".github")),
+            FailingGit().run,
+        )
+
+        assert files == ["app/a.py"]
+
     # Why this test survives refactoring: git command failures must not crash discovery mode.
     def test_discover_files_returns_untracked_when_base_git_diff_fails(
         self,
@@ -287,10 +359,14 @@ class TestDiscoverFiles:
         # Assert
         assert files == ["app/untracked.py"]
 
-    def test_discover_files_raises_when_not_a_git_work_tree(self, tmp_path: Path) -> None:
+    def test_discover_files_raises_when_not_a_git_work_tree(
+        self, tmp_path: Path
+    ) -> None:
         class NotGit:
             def run(self, command: Sequence[str]) -> CompletedProcess[str]:
-                raise CalledProcessError(128, cmd=list(command), stderr="not a git repository")
+                raise CalledProcessError(
+                    128, cmd=list(command), stderr="not a git repository"
+                )
 
         create_files(tmp_path, "app/a.py")
 

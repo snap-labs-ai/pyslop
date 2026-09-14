@@ -70,7 +70,7 @@ pyslop analyzers
 - `--timings`: Print wall time per selected analyzer on stderr.
 - `--no-cache`: Force filename analyzers to rescan (cache is `.pyslop/cache/`).
 - `--config <path>`: Custom config file path.
-- `--no-exclude`: Bypass configured exclude patterns.
+- `--no-exclude`: Bypass configured exclude patterns. Hidden files and directories (any path segment starting with `.`) are never scanned.
 
 Index analyzers (`inputs = "index"`) are not cached. `pyslop init` gitignores `.pyslop/cache/`.
 
@@ -151,4 +151,4 @@ uvx pre-commit install
 uv run pytest
 ```
 
-The root [`.pre-commit-config.yaml`](.pre-commit-config.yaml) runs the in-tree CLI on staged Python files (`uv run pyslop run --strict`). [`pyslop.toml`](pyslop.toml) excludes `tests/**` (fixture slop), `.agents/**`, and `.claude/**`. Host-repo install snippets live in [examples/](examples/).
+The root [`.pre-commit-config.yaml`](.pre-commit-config.yaml) runs the in-tree CLI on staged Python files (`uv run pyslop run --strict`). [`pyslop.toml`](pyslop.toml) excludes `tests/**` (fixture slop). Hidden trees such as `.agents` are skipped automatically. Host-repo install snippets live in [examples/](examples/).

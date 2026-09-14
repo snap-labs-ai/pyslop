@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import fnmatch
+import os
 import subprocess
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
@@ -41,7 +42,8 @@ def discover_files(
         else _discover_git(repo_root, options, executor or _run_git)
     )
     existing = [path for path in _unique(files) if (repo_root / path).is_file()]
-    filtered = _filter_for_path(existing, options.path)
+    visible = [path for path in existing if not is_dot_path(path)]
+    filtered = _filter_for_path(visible, options.path)
     return (
         filtered if options.no_exclude else apply_excludes(filtered, options.excludes)
     )
@@ -56,11 +58,11 @@ def _discover_explicit(repo_root: Path, options: DiscoveryOptions) -> list[str]:
                 candidates.append(root)
                 continue
             if root.is_dir():
-                candidates.extend(sorted(root.rglob("*")))
+                candidates.extend(_walk_visible_files(root))
                 continue
             candidates.append(root)
     else:
-        candidates = sorted(repo_root.rglob("*"))
+        candidates = _walk_visible_files(repo_root)
     return [_relative(repo_root, path) for path in candidates if path.is_file()]
 
 
@@ -157,3 +159,25 @@ def _matches_any(path: str, patterns: list[str] | tuple[str, ...]) -> bool:
 
 def _relative(repo_root: Path, path: Path) -> str:
     return path.relative_to(repo_root).as_posix()
+
+
+def is_dot_path(path: str) -> bool:
+    return any(
+        _is_dot_name(part) for part in path.replace("\\", "/").split("/") if part
+    )
+
+
+def _is_dot_name(name: str) -> bool:
+    return name.startswith(".") and name not in {".", ".."}
+
+
+def _walk_visible_files(root: Path) -> list[Path]:
+    found: list[Path] = []
+    for current, dirnames, filenames in os.walk(root, topdown=True):
+        dirnames[:] = [name for name in dirnames if not _is_dot_name(name)]
+        current_path = Path(current)
+        for name in filenames:
+            if _is_dot_name(name):
+                continue
+            found.append(current_path / name)
+    return sorted(found)

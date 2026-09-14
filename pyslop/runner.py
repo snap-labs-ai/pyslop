@@ -6,9 +6,8 @@ from dataclasses import dataclass, field, fields
 from fnmatch import fnmatch
 from os import environ, pathsep
 from pathlib import Path
-from typing import Protocol
-
 from time import perf_counter
+from typing import Protocol
 
 from pyslop.analyzers import (
     complexipy,
@@ -29,20 +28,25 @@ from pyslop.analyzers.registry import (
 from pyslop.axi import render_analyzers, render_error, render_findings
 from pyslop.cache import load_cached_result, store_cached_result
 from pyslop.config import ConfigError, load_config
-from pyslop.discovery import DiscoveryError, DiscoveryOptions, discover_files
+from pyslop.discovery import (
+    DiscoveryError,
+    DiscoveryOptions,
+    discover_files,
+    is_dot_path,
+)
 from pyslop.packaged import packaged_analyzer_config
 from pyslop.rules_loader import RulesError, load_rules
 from pyslop.types import (
-    AnalyzerConfig,
-    AnalyzerRunResult,
-    AnalyzerSpec,
-    PyslopConfig,
-    DiscoveryModeFields,
-    ExtensionConfig,
-    Finding,
     INPUTS_FILENAMES,
     INPUTS_INDEX,
     REGEX_ANALYZER_NAME,
+    AnalyzerConfig,
+    AnalyzerRunResult,
+    AnalyzerSpec,
+    DiscoveryModeFields,
+    ExtensionConfig,
+    Finding,
+    PyslopConfig,
     RuleMetadata,
     RunOptions,
     RunResult,
@@ -436,6 +440,8 @@ def _filter_findings(
     kept: list[Finding] = []
     for finding in findings:
         normalized = _normalize_relative_path(finding.path, repo_root)
+        if is_dot_path(normalized):
+            continue
         resolved = _resolve_finding_path(normalized, discovered, basename_to_paths)
         if resolved:
             kept.append(

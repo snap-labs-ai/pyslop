@@ -63,6 +63,7 @@ def test_runner_writes_axi_stdout_and_returns_findings_exit_code(
     assert "custom" in result.stdout_text
     assert "Fix it." in result.stdout_text
 
+
 # Why this test survives refactoring: select/ignore filter findings after analyzers.
 def test_runner_drops_findings_by_select_and_ignore(tmp_path: Path) -> None:
     (tmp_path / "app.py").write_text("print('x')", encoding="utf-8")
@@ -186,6 +187,7 @@ def test_runner_returns_no_stdout_text_when_clean(
     assert result.stdout_text is not None
     assert "findings: 0 in this file set" in result.stdout_text
 
+
 # Why this test survives refactoring: analyzer errors must preserve partial stdout findings.
 def test_runner_returns_stdout_text_with_errors(
     tmp_path: Path,
@@ -225,6 +227,7 @@ def test_runner_returns_stdout_text_with_errors(
     assert result.errors == ("bad config",)
     assert result.stdout_text is not None
     assert "error: bad config" in result.stdout_text
+
 
 # Why this test survives refactoring: clean AXI runs have a distinct public exit code and body.
 def test_runner_returns_zero_when_clean(tmp_path: Path) -> None:
@@ -1449,6 +1452,59 @@ def test_runner_maps_unique_basename_findings_to_discovered_file_path(
     assert result.findings_count == 1
     assert result.files_with_findings_count == 1
     assert "pyslop/pyslop/cli.py" in report
+
+
+# Why this test survives refactoring: findings under hidden paths must not be remapped onto visible files.
+def test_runner_drops_findings_on_dot_paths(tmp_path: Path, monkeypatch) -> None:
+    target = tmp_path / "app" / "cli.py"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text("def main():\n    return 0\n", encoding="utf-8")
+
+    def load_config(_root: Path, _path: str | None = None) -> PyslopConfig:
+        return PyslopConfig()
+
+    def discover_files(_root: Path, _options: DiscoveryOptions) -> list[str]:
+        return ["app/cli.py"]
+
+    def fake_complexipy_run(
+        _files: list[str],
+        _repo_root: Path,
+        _config: AnalyzerConfig,
+        _executor=None,
+    ) -> AnalyzerRunResult:
+        return AnalyzerRunResult(
+            findings=(Finding(".venv/cli.py", 1, "complexipy", "complexity too high"),)
+        )
+
+    def load_rules(_config: PyslopConfig, _repo_root: Path) -> dict[str, RuleMetadata]:
+        return {}
+
+    def fake_get_enabled_complexipy_only(
+        *_args: object,
+        **_kwargs: object,
+    ) -> list[SimpleNamespace]:
+        return [SimpleNamespace(name="complexipy")]
+
+    monkeypatch.setattr(
+        runner_module,
+        "analyzers_for_run",
+        fake_get_enabled_complexipy_only,
+    )
+    monkeypatch.setattr(
+        runner_module,
+        "complexipy",
+        SimpleNamespace(run=fake_complexipy_run),
+    )
+
+    deps = RunnerDependencies(
+        load_config=load_config,
+        discover_files=discover_files,
+        load_rules=load_rules,
+    )
+
+    result = run(RunOptions(repo_root=tmp_path), deps)
+
+    assert result.findings_count == 0
 
 
 # Why this test survives refactoring: ambiguous basename-only paths should not be guessed to the wrong discovered file.
