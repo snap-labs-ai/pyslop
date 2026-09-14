@@ -46,7 +46,7 @@ def test_get_enabled_analyzers_excludes_disabled_tools() -> None:
 def test_get_enabled_analyzers_silently_excludes_unavailable_tools() -> None:
     analyzers = get_enabled_analyzers(PyslopConfig(), available=lambda name: False)
 
-    assert analyzers == []
+    assert [analyzer.name for analyzer in analyzers] == ["too-many-module-functions"]
 
 
 # Why this test survives refactoring: analyzer availability is exposed through enabled analyzer names.
@@ -56,7 +56,10 @@ def test_get_enabled_analyzers_includes_detect_secrets_when_hook_available() -> 
         available=lambda name: name == "detect-secrets-hook",
     )
 
-    assert [analyzer.name for analyzer in analyzers] == ["detect-secrets"]
+    assert [analyzer.name for analyzer in analyzers] == [
+        "detect-secrets",
+        "too-many-module-functions",
+    ]
 
 
 # Why this test survives refactoring: importable modules are not enough to select a builtin.
@@ -66,7 +69,7 @@ def test_get_enabled_analyzers_excludes_detect_secrets_when_hook_missing() -> No
         available=lambda name: False,
     )
 
-    assert analyzers == []
+    assert [analyzer.name for analyzer in analyzers] == ["too-many-module-functions"]
 
 
 # Why this test survives refactoring: existing builtin availability still uses each analyzer name.
@@ -76,7 +79,10 @@ def test_get_enabled_analyzers_keeps_existing_builtin_name_resolution() -> None:
         available=lambda name: name == "ruff",
     )
 
-    assert [analyzer.name for analyzer in analyzers] == ["ruff"]
+    assert [analyzer.name for analyzer in analyzers] == [
+        "ruff",
+        "too-many-module-functions",
+    ]
 
 
 # Why this test survives refactoring: builtin pylint is CI-only in the public spec.
@@ -90,6 +96,7 @@ def test_get_enabled_analyzers_marks_pylint_ci() -> None:
     # Assert
     assert analyzers == [
         AnalyzerSpec(name="pylint", stage="ci"),
+        AnalyzerSpec(name="too-many-module-functions"),
     ]
 
 
@@ -110,8 +117,8 @@ def test_packaged_pylint_config_enables_only_cyclic_import() -> None:
     # Assert
     assert "cyclic-import" in text
     assert "import-error" not in text
-    assert "too-many-lines" not in text
     assert "consider-using-join" not in text
+    assert "disable = [\"all\"]" in text
 
 
 # Why this test survives refactoring: default runs must omit CI-only analyzers including pylint and index extensions.
@@ -172,7 +179,11 @@ def test_analyzers_for_run_includes_ci_stage_when_requested() -> None:
     )
 
     # Assert
-    assert [spec.name for spec in selected] == ["pylint", "lock"]
+    assert [spec.name for spec in selected] == [
+        "pylint",
+        "too-many-module-functions",
+        "lock",
+    ]
 
 
 # Why this test survives refactoring: regex is selected only when detect rules exist.
@@ -188,7 +199,10 @@ def test_analyzers_for_run_includes_regex_when_detect_rules_exist() -> None:
         },
     )
 
-    assert [spec.name for spec in selected] == ["regex"]
+    assert [spec.name for spec in selected] == [
+        "too-many-module-functions",
+        "regex",
+    ]
 
 
 # Why this test survives refactoring: the normalized ruff Finding contract is public.

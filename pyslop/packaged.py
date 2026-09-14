@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from functools import lru_cache
+from functools import cache
 from importlib import resources
 from pathlib import Path
+import tomllib
 
 from pyslop.cache import cache_root, fingerprint
 from pyslop.config import parse_rules_document
@@ -15,6 +16,7 @@ PACKAGED_ANALYZER_FILES: dict[str, tuple[str, str]] = {
     "vulture": ("vulture", "config.toml"),
     "complexipy": ("complexipy", "config.toml"),
     "detect-secrets": ("detect_secrets", "config.toml"),
+    "too-many-module-functions": ("too_many_module_functions", "config.toml"),
 }
 
 
@@ -71,12 +73,10 @@ def merge_rules(
 
 
 def _toml_dict(text: str) -> dict[str, object]:
-    import tomllib
-
     return tomllib.loads(text)
 
 
-@lru_cache(maxsize=None)
+@cache
 def _materialize_packaged_file(parts: tuple[str, ...], repo_root: Path) -> Path:
     payload = resources.files("pyslop").joinpath(*parts).read_bytes()
     key = fingerprint((b"\0".join(part.encode() for part in parts), payload))

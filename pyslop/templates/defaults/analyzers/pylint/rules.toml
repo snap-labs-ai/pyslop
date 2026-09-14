@@ -1,4 +1,5 @@
-# Pylint rules — keyed by symbol name (what pylint JSON output emits)
+# Pylint rules — keyed by symbol name (JSON `symbol`).
+# Only cyclic-import is enabled. Other pylint messages are covered by Ruff `PL`.
 
 [rules.cyclic-import]
 name = "cyclic-import"

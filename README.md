@@ -95,12 +95,14 @@ disable = []
 # Optional overlays:
 # [analyzers.ruff]
 # config = ".pyslop/analyzers/ruff/config.toml"
+# [analyzers.too-many-module-functions]
+# config = ".pyslop/analyzers/too_many_module_functions/config.toml"
 
 select = []
 ignore = ["ruff-PLR0913"]
 ```
 
-`select` and `ignore` use fnmatch against pyslop rule ids (`ruff-*`, `slop-words.*`).
+`select` and `ignore` use fnmatch against pyslop rule ids (`ruff-*`, `slop-words.*`, `too-many-module-functions`). The AST builtin `too-many-module-functions` is always on (default 10 public module-level functions; `_` names, methods, and nested defs do not count). Overlay `max-module-functions` in that analyzer's config.
 
 ## Regex rules
 
@@ -137,7 +139,7 @@ Index extensions set `inputs = "index"` and `index-roots`. They receive `PYSLOP_
 
 # Versioning
 
-This package is **0.y.z** until 1.0.0. Before 1.0.0, CLI flags and AXI table shape MAY change in a minor version. From 1.0.0 onward, breaking changes go in a major version. Every released version is recorded in `CHANGELOG.md`.
+This package is **0.y.z** until 1.0.0. Before 1.0.0, CLI flags and AXI table shape MAY change in a minor version. From 1.0.0 onward, breaking changes go in a major version.
 
 # Development
 
@@ -149,4 +151,4 @@ uvx pre-commit install
 uv run pytest
 ```
 
-The root [`.pre-commit-config.yaml`](.pre-commit-config.yaml) runs the in-tree CLI on staged Python files (`uv run pyslop run --strict`). [`pyslop.toml`](pyslop.toml) excludes `tests/**` because those files mention slop on purpose. Host-repo install snippets live in [examples/](examples/).
+The root [`.pre-commit-config.yaml`](.pre-commit-config.yaml) runs the in-tree CLI on staged Python files (`uv run pyslop run --strict`). [`pyslop.toml`](pyslop.toml) excludes `tests/**` (fixture slop), `.agents/**`, and `.claude/**`. Host-repo install snippets live in [examples/](examples/).

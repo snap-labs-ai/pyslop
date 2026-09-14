@@ -7,7 +7,7 @@ from pyslop.scaffold import scaffold, scaffold_extensions
 from pyslop.types import RunOptions
 
 BUILTIN_DISABLE_LIST = (
-    'disable = ["ruff", "pylint", "mypy", "vulture", "complexipy", "detect-secrets"]'
+    'disable = ["ruff", "pylint", "mypy", "vulture", "complexipy", "detect-secrets", "too-many-module-functions"]'
 )
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 _TEMPLATE_DETECT_SHIMS = (

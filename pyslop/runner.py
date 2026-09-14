@@ -17,6 +17,7 @@ from pyslop.analyzers import (
     pylint,
     regex,
     ruff,
+    too_many_module_functions,
     vulture,
 )
 from pyslop.analyzers.extension import run_one_extension
@@ -63,7 +64,7 @@ class AnalyzerModule(Protocol):
         files: list[str],
         repo_root: Path,
         config: AnalyzerConfig,
-        executor: object | None = None,
+        _executor: object | None = None,
     ) -> AnalyzerRunResult: ...
 
 
@@ -105,33 +106,13 @@ def run(
     deps = dependencies or RunnerDependencies()
     try:
         config = deps.load_config(options.repo_root, options.config_path)
-    except ConfigError as exc:
-        return RunResult(
-            exit_code=2,
-            findings_count=0,
-            errors=(str(exc),),
-            stdout_text=render_error(str(exc), "pyslop run --help"),
-        )
-
-    discovery_options = _discovery_options(options, config)
-    try:
+        discovery_options = _discovery_options(options, config)
         files = deps.discover_files(options.repo_root, discovery_options)
-    except DiscoveryError as exc:
-        return RunResult(
-            exit_code=2,
-            findings_count=0,
-            errors=(str(exc),),
-            stdout_text=render_error(str(exc), "pyslop run --files FILE"),
-        )
-    try:
         rules = deps.load_rules(config, options.repo_root)
-    except RulesError as exc:
-        return RunResult(
-            exit_code=2,
-            findings_count=0,
-            errors=(str(exc),),
-            stdout_text=render_error(str(exc), "pyslop run --help"),
-        )
+    except DiscoveryError as exc:
+        return _failed_result(exc, "pyslop run --files FILE")
+    except (ConfigError, RulesError) as exc:
+        return _failed_result(exc, "pyslop run --help")
     analyzer_result = _run_analyzers(
         deps,
         _AnalyzerRunParams(
@@ -176,35 +157,15 @@ def inspect_analyzers(
     options: RunOptions, dependencies: RunnerDependencies | None = None
 ) -> RunResult:
     deps = dependencies or RunnerDependencies()
+    help_text = "pyslop analyzers --help"
     try:
         config = deps.load_config(options.repo_root, options.config_path)
-    except ConfigError as exc:
-        return RunResult(
-            exit_code=2,
-            findings_count=0,
-            errors=(str(exc),),
-            stdout_text=render_error(str(exc), "pyslop analyzers --help"),
-        )
-    try:
         rules = deps.load_rules(config, options.repo_root)
-    except RulesError as exc:
-        return RunResult(
-            exit_code=2,
-            findings_count=0,
-            errors=(str(exc),),
-            stdout_text=render_error(str(exc), "pyslop analyzers --help"),
-        )
-    stages = stages_for_run(options.stage)
-    discovery_options = _discovery_options(options, config)
-    try:
+        discovery_options = _discovery_options(options, config)
         files = deps.discover_files(options.repo_root, discovery_options)
-    except DiscoveryError as exc:
-        return RunResult(
-            exit_code=2,
-            findings_count=0,
-            errors=(str(exc),),
-            stdout_text=render_error(str(exc), "pyslop analyzers --help"),
-        )
+    except (ConfigError, DiscoveryError, RulesError) as exc:
+        return _failed_result(exc, help_text)
+    stages = stages_for_run(options.stage)
     params = _AnalyzerRunParams(
         config=config,
         files=files,
@@ -224,6 +185,15 @@ def inspect_analyzers(
         exit_code=0,
         findings_count=0,
         stdout_text=render_analyzers(runnable, tuple(skipped)),
+    )
+
+
+def _failed_result(exc: Exception, help_text: str) -> RunResult:
+    return RunResult(
+        exit_code=2,
+        findings_count=0,
+        errors=(str(exc),),
+        stdout_text=render_error(str(exc), help_text),
     )
 
 
@@ -304,6 +274,7 @@ def _run_analyzers(
         "vulture": vulture,
         "complexipy": complexipy,
         DETECT_SECRETS_ANALYZER_NAME: detect_secrets,
+        "too-many-module-functions": too_many_module_functions,
     }
     for spec in analyzers_for_run(params.config, params.stages, rules=params.rules):
         if _skip_index_analyzer(spec, params):

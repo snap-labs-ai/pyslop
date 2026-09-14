@@ -1,0 +1,3 @@
+[rules."too-many-module-functions"]
+name = "too-many-module-functions"
+fix = "Split the module along existing seams into smaller modules that each own one responsibility (parse vs persist vs policy), not a bag of helpers. Keep a small public surface (a few entry points) and move the rest to sibling modules or private helpers (`_` prefix). Do not invent facade modules or one-function wrapper packages just to lower the count."

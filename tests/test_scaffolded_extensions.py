@@ -7,7 +7,7 @@ from pyslop.scaffold import scaffold
 from pyslop.types import RunOptions
 
 BUILTIN_DISABLE_LIST = (
-    'disable = ["ruff", "pylint", "mypy", "vulture", "complexipy", "detect-secrets"]'
+    'disable = ["ruff", "pylint", "mypy", "vulture", "complexipy", "detect-secrets", "too-many-module-functions"]'
 )
 AGENTIC_RULE = """
 [[rules]]

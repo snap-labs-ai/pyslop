@@ -1,6 +1,11 @@
+# `PL` is the pylint rule set (Ruff). The pylint binary is not a second style
+# guide: it only runs `cyclic-import` on `--stage ci`.
+# PLR0904 is preview: opt in by exact code so other preview PL rules stay off.
 [lint]
+preview = true
+explicit-preview-rules = true
 select = ["E", "F", "PL", "B", "SIM", "C4", "RET", "S", "PERF"]
-extend-select = ["FA", "TID", "TC", "C901", "G", "PT", "UP", "ERA001", "BLE001", "ARG", "PIE790"]
+extend-select = ["FA", "TID", "TC", "C901", "G", "PT", "UP", "ERA001", "BLE001", "ARG", "PIE790", "PLR0904"]
 ignore = ["E501", "PLW0108", "TC002", "TC001", "TC003", "S101", "S603"]
 
 [lint.pylint]
@@ -9,6 +14,7 @@ max-locals = 10
 max-branches = 10
 max-returns = 3
 max-statements = 30
+max-public-methods = 10
 
 [lint.mccabe]
 max-complexity = 10
@@ -17,8 +23,8 @@ max-complexity = 10
 "**/cli.py" = ["PLR0913"]
 # Broad glob keeps the arg-count and unused-argument exemptions for any
 # test-named module (pytest fixtures occupy unused parameters by design).
-"**/*test*.py" = ["PLR0913", "ARG"]
+"**/*test*.py" = ["PLR0913", "PLR0904", "ARG"]
 # Hardcoded-password checks (S105/S106) are false positives in real test
 # fixtures only — avoid exempting non-test files that merely contain "test".
-"**/tests/**/*.py" = ["S105", "S106", "ARG"]
-"**/test_*.py" = ["S105", "S106", "ARG"]
+"**/tests/**/*.py" = ["S105", "S106", "ARG", "PLR0904"]
+"**/test_*.py" = ["S105", "S106", "ARG", "PLR0904"]

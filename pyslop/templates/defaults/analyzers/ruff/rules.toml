@@ -97,6 +97,11 @@ doc-links = ["https://docs.astral.sh/ruff/rules/undefined-name/"]
 
 # PL — pylint rules enforced through ruff
 
+[rules.ruff-PLR0904]
+name = "too-many-public-methods"
+fix = "Split the class along existing seams into smaller types that each own one responsibility (parse vs persist vs policy), not a bag of helpers. Keep a small public surface (a few entry points) and move the rest to collaborators or module-private functions. Do not invent facades, mixins, or one-method wrapper classes just to lower the count."
+doc-links = ["https://docs.astral.sh/ruff/rules/too-many-public-methods/"]
+
 [rules.ruff-PLE0302]
 name = "unexpected-special-method-signature"
 fix = "Match the expected dunder method signature."

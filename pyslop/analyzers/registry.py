@@ -22,7 +22,9 @@ BUILTIN_ANALYZERS = (
     "vulture",
     "complexipy",
     "detect-secrets",
+    "too-many-module-functions",
 )
+ALWAYS_AVAILABLE_BUILTINS = frozenset({"too-many-module-functions"})
 EXECUTABLE_MAP = {"detect-secrets": "detect-secrets-hook"}  # pragma: allowlist secret
 SKIP_REASON_NOT_ON_PATH = "executable not on PATH"
 
@@ -39,6 +41,7 @@ BUILTIN_SPECS: dict[str, AnalyzerSpec] = {
     "vulture": AnalyzerSpec(name="vulture"),
     "complexipy": AnalyzerSpec(name="complexipy"),
     "detect-secrets": AnalyzerSpec(name="detect-secrets"),
+    "too-many-module-functions": AnalyzerSpec(name="too-many-module-functions"),
 }
 REGEX_SPEC = AnalyzerSpec(name=REGEX_ANALYZER_NAME)
 
@@ -65,9 +68,11 @@ def analyzers_for_run(
     rules: dict[str, RuleMetadata] | None = None,
 ) -> list[AnalyzerSpec]:
     selected: list[AnalyzerSpec] = []
-    for spec in get_enabled_analyzers(config, available):
-        if spec.stage in stages:
-            selected.append(spec)
+    selected.extend(
+        spec
+        for spec in get_enabled_analyzers(config, available)
+        if spec.stage in stages
+    )
     if (
         REGEX_ANALYZER_NAME not in config.disabled_analyzers
         and REGEX_SPEC.stage in stages
@@ -121,6 +126,8 @@ def get_enabled_analyzers(
 
 
 def _is_available(name: str, available: Detector) -> bool:
+    if name in ALWAYS_AVAILABLE_BUILTINS:
+        return True
     executable_name = EXECUTABLE_MAP.get(name, name)
     return available(executable_name)
 
