@@ -7,6 +7,8 @@
 # pyslop-all: whole tree.
 # pyslop-changed: git triple-dot vs the PR base (main on push). Empty on a
 # push that is already origin/main; use pyslop-all as the main-branch gate.
+# pyslop-extensions: optional. Pytest host plugins without loading a parent
+# conftest.py (app settings, CI secrets). See docs/extensions.md.
 
 name: CI
 
@@ -43,3 +45,12 @@ jobs:
       - run: uv run pyslop run --stage ci --strict --base "origin/${BASE_REF}"
         env:
           BASE_REF: ${{ github.event.pull_request.base.ref || 'main' }}
+
+  pyslop-extensions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv python install 3.12
+      - run: uv sync
+      - run: uv run pytest pyslop_extensions --confcutdir=pyslop_extensions

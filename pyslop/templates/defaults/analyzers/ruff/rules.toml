@@ -1,5 +1,5 @@
 # Ruff — structural / complexity rules
-# PLR09xx (pylint refactor via ruff), C901 (mccabe), PLR2004, B, E, F, SIM, RET, C4, FA, TID, UP, ERA, BLE, ARG, PIE
+# PLR09xx (pylint refactor via ruff), C901 (mccabe), PLR2004, B, E, F, SIM, RET, C4, FA, TID, UP, ERA, BLE, ARG, PIE, RUF, I, T20
 
 [rules.ruff-PLR0913]
 name = "too-many-arguments"
@@ -378,5 +378,146 @@ doc-links = ["https://docs.astral.sh/ruff/rules/unused-lambda-argument/"]
 
 [rules.ruff-PIE790]
 name = "unnecessary-placeholder"
-fix = "Remove the redundant `pass` or `...`. A docstring or a real statement already gives the block a body; keep `...` only as the sole body of a protocol, stub, or abstract method."
+fix = "Remove the redundant `pass` or `...`. A docstring or a real statement already gives the block a body; keep `...` only as the sole body of a protocol, stub, or abstract method. Do not replace `pass` with `None`, `...` in a concrete function, or a comment that only exists to occupy the block."
 doc-links = ["https://docs.astral.sh/ruff/rules/unnecessary-placeholder/"]
+
+[rules.ruff-PIE794]
+name = "duplicate-class-field-definition"
+fix = "Keep a single definition of the field. Merge the later assignment into the first annotated attribute, or rename the second if it is a different concept. Do not comment out the duplicate or hide it behind a dummy name."
+doc-links = ["https://docs.astral.sh/ruff/rules/duplicate-class-field-definition/"]
+
+[rules.ruff-PIE796]
+name = "non-unique-enums"
+fix = "Give each enum member a distinct value that matches the domain. Do not reuse a sentinel, alias via a stringly-equal duplicate, or skip uniqueness with a noqa."
+doc-links = ["https://docs.astral.sh/ruff/rules/non-unique-enums/"]
+
+[rules.ruff-PIE800]
+name = "unnecessary-spread"
+fix = "Pass the mapping or iterable directly instead of unpacking a literal (`{**{'a': 1}}`, `[*items]` of a single list). Do not wrap the spread in an extra helper just to keep the stars."
+doc-links = ["https://docs.astral.sh/ruff/rules/unnecessary-spread/"]
+
+[rules.ruff-PIE804]
+name = "unnecessary-dict-kwargs"
+fix = "Pass keyword arguments as keywords (`f(a=1)`), not `f(**{'a': 1})`. Do not move the dict to a variable solely to keep the splat."
+doc-links = ["https://docs.astral.sh/ruff/rules/unnecessary-dict-kwargs/"]
+
+[rules.ruff-PIE807]
+name = "reimplemented-container-builtin"
+fix = "Use the container constructor or method (`list`, `dict`, `set`, `.copy()`) instead of a lambda that only rebuilds it. Do not rename the lambda or nest it to dodge the match."
+doc-links = ["https://docs.astral.sh/ruff/rules/reimplemented-list-builtin/"]
+
+[rules.ruff-PIE808]
+name = "unnecessary-range-start"
+fix = "Write `range(n)` instead of `range(0, n)`. Do not switch to a while-loop or enumerate to avoid `range`."
+doc-links = ["https://docs.astral.sh/ruff/rules/unnecessary-range-start/"]
+
+[rules.ruff-PIE810]
+name = "multiple-starts-ends-with"
+fix = "Call `startswith`/`endswith` once with a tuple of prefixes or suffixes. Do not chain `or` across repeated calls or compile a regex for a fixed set of literals."
+doc-links = ["https://docs.astral.sh/ruff/rules/multiple-starts-ends-with/"]
+
+# T20 — flake8-print
+
+[rules.ruff-T201]
+name = "print"
+fix = "Delete leftover `print` calls. If this is real operational output, write it through the project's logger (or CLI stdout helper) at the right level. Do not hide prints behind `if DEBUG`, `if False`, string-concat no-ops, or `logging.basicConfig` dumped next to the call."
+doc-links = ["https://docs.astral.sh/ruff/rules/print/"]
+
+[rules.ruff-T203]
+name = "p-print"
+fix = "Delete leftover `pprint` calls. Pretty-print only through an intentional debug logger or a test assertion on structured data. Do not alias `pprint` or wrap it in a local helper to keep the dump."
+doc-links = ["https://docs.astral.sh/ruff/rules/p-print/"]
+
+# I — isort
+
+[rules.ruff-I001]
+name = "unsorted-imports"
+fix = "Reorder the import block to Ruff's isort layout (stdlib, third-party, first-party; absolute imports). Apply the auto-fix. Do not `# isort: skip`, scatter imports inside functions, or wrap them in `TYPE_CHECKING` solely to hide the order."
+doc-links = ["https://docs.astral.sh/ruff/rules/unsorted-imports/"]
+
+[rules.ruff-I002]
+name = "missing-required-import"
+fix = "Add the required import at module top in the isort section it belongs to. Do not inject it inline, behind a delayed import, or with a noqa on the missing line."
+doc-links = ["https://docs.astral.sh/ruff/rules/missing-required-import/"]
+
+# RUF — Ruff-native
+
+[rules.ruff-RUF001]
+name = "ambiguous-unicode-character-string"
+fix = "Replace lookalike Unicode (Cyrillic, fullwidth, smart quotes) with the ASCII character the code meant. Do not leave the homoglyph and noqa it; copy-paste from chat often introduces these."
+doc-links = ["https://docs.astral.sh/ruff/rules/ambiguous-unicode-character-string/"]
+
+[rules.ruff-RUF002]
+name = "ambiguous-unicode-character-docstring"
+fix = "Replace lookalike Unicode in the docstring with ASCII. Do not keep stylized punctuation to 'look nicer' or suppress the rule."
+doc-links = ["https://docs.astral.sh/ruff/rules/ambiguous-unicode-character-docstring/"]
+
+[rules.ruff-RUF003]
+name = "ambiguous-unicode-character-comment"
+fix = "Replace lookalike Unicode in the comment with ASCII. Delete the comment if it is leftover chat prose rather than an invariant."
+doc-links = ["https://docs.astral.sh/ruff/rules/ambiguous-unicode-character-comment/"]
+
+[rules.ruff-RUF006]
+name = "asyncio-dangling-task"
+fix = "Keep a reference to the Task (`task = asyncio.create_task(...)`) and await or explicitly cancel it in the owner's lifetime. Do not fire-and-forget, store it on a throwaway `_`, or wrap create_task in a helper that drops the result."
+doc-links = ["https://docs.astral.sh/ruff/rules/asyncio-dangling-task/"]
+
+[rules.ruff-RUF008]
+name = "mutable-dataclass-default"
+fix = "Use `field(default_factory=list)` (or dict/set) instead of a mutable literal default on the dataclass field. Do not copy the literal in `__post_init__` to paper over sharing."
+doc-links = ["https://docs.astral.sh/ruff/rules/mutable-dataclass-default/"]
+
+[rules.ruff-RUF009]
+name = "function-call-in-dataclass-default-argument"
+fix = "Move the call into `default_factory` so each instance gets a fresh value. Do not cache the call in a module global just to make the default 'static'."
+doc-links = ["https://docs.astral.sh/ruff/rules/function-call-in-dataclass-default-argument/"]
+
+[rules.ruff-RUF012]
+name = "mutable-class-default"
+fix = "Replace the mutable class attribute with `ClassVar` plus a factory, or instance state set in `__init__`. Do not mutate a shared list/dict default across instances."
+doc-links = ["https://docs.astral.sh/ruff/rules/mutable-class-default/"]
+
+[rules.ruff-RUF013]
+name = "implicit-optional"
+fix = "Annotate `X | None` (and default `None`) explicitly. Do not drop the default, switch to `Any`, or use a string annotation to avoid writing Optional."
+doc-links = ["https://docs.astral.sh/ruff/rules/implicit-optional/"]
+
+[rules.ruff-RUF018]
+name = "assignment-in-assert"
+fix = "Perform the assignment in real code, then `assert` the bound name. Do not rely on `assert` for control flow — it disappears with `-O`."
+doc-links = ["https://docs.astral.sh/ruff/rules/assignment-in-assert/"]
+
+[rules.ruff-RUF027]
+name = "missing-f-string-syntax"
+fix = "Prefix the string with `f` if you meant interpolation, or remove the unused `{...}` braces if you meant a literal. Do not escape braces randomly to silence the hint."
+doc-links = ["https://docs.astral.sh/ruff/rules/missing-f-string-syntax/"]
+
+[rules.ruff-RUF030]
+name = "assert-with-print-message"
+fix = "Pass a string (or f-string) as the assert message, not `print(...)`. Do not keep the print as a side effect 'for debugging'."
+doc-links = ["https://docs.astral.sh/ruff/rules/assert-with-print-message/"]
+
+[rules.ruff-RUF034]
+name = "useless-if-else"
+fix = "Delete the if/else and keep the value that both branches produce, or write the real condition. Do not invert the branches or wrap the same expression in a helper."
+doc-links = ["https://docs.astral.sh/ruff/rules/useless-if-else/"]
+
+[rules.ruff-RUF100]
+name = "unused-noqa"
+fix = "Remove the unused `# noqa`. Do not add a dummy violation, widen the noqa to `noqa: ALL`, or retarget another code just to keep the comment."
+doc-links = ["https://docs.astral.sh/ruff/rules/unused-noqa/"]
+
+[rules.ruff-RUF101]
+name = "redirected-noqa"
+fix = "Update the noqa code to the current Ruff code. Do not add a second noqa or disable the whole file."
+doc-links = ["https://docs.astral.sh/ruff/rules/redirected-noqa/"]
+
+[rules.ruff-RUF102]
+name = "invalid-rule-code"
+fix = "Correct or delete the bogus rule code in the suppression. Do not invent codes or leave typos that hide other suppressions."
+doc-links = ["https://docs.astral.sh/ruff/rules/invalid-rule-code/"]
+
+[rules.ruff-RUF103]
+name = "invalid-suppression-comment"
+fix = "Fix the `# ruff:` / noqa comment syntax so it actually applies, or delete it. Do not scatter extra enable/disable comments to 'make it work'."
+doc-links = ["https://docs.astral.sh/ruff/rules/invalid-suppression-comment/"]

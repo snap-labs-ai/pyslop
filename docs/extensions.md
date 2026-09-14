@@ -29,6 +29,18 @@ Exit code 2 or greater is a tool failure. Exit 1 may still include that JSON.
 
 Set `inputs = "index"` and `index-roots`. The process receives `PYSLOP_INDEX_ROOTS` (OS path separator). Findings outside the discovered file set are dropped.
 
+## Testing host extensions
+
+Host tests under `pyslop_extensions/` belong to the consuming repo. Pytest still loads every `conftest.py` above that path, including a repo-root file that may import app settings and secrets.
+
+From the host root, cut collection at the extension tree:
+
+```bash
+uv run pytest pyslop_extensions --confcutdir=pyslop_extensions
+```
+
+See the optional `pyslop-extensions` job in [`examples/ci.yaml`](../examples/ci.yaml).
+
 ## Trust
 
 Command extensions run as a subprocess with the discovered paths on argv. Entry-point extensions import and call Python from the repo (`path.py:function` or `module:function`). Pyslop does not sandbox either form. Treat extension code as part of the trusted repository, the same as any other local script you execute.
