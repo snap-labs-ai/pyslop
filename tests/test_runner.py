@@ -627,6 +627,51 @@ def test_runner_reuses_filename_cache_until_no_cache(
     assert len(calls) == 2
 
 
+# Why this test survives refactoring: Windows ruff JSON uses absolute paths; cache must still replay findings.
+def test_runner_reuses_filename_cache_when_findings_use_absolute_paths(
+    tmp_path: Path, monkeypatch
+) -> None:
+    # Arrange
+    (tmp_path / "app.py").write_text("x = 1\n", encoding="utf-8")
+    calls: list[int] = []
+    absolute_path = str((tmp_path / "app.py").resolve())
+
+    def fake_run(*_args: object, **_kwargs: object) -> AnalyzerRunResult:
+        calls.append(1)
+        return AnalyzerRunResult(
+            findings=(Finding(absolute_path, 1, "ruff-F401", "unused"),)
+        )
+
+    monkeypatch.setattr(
+        runner_module,
+        "analyzers_for_run",
+        lambda *_args, **_kwargs: [AnalyzerSpec(name="ruff")],
+    )
+    monkeypatch.setattr(runner_module, "ruff", SimpleNamespace(run=fake_run))
+
+    def load_config(_root: Path, _path: str | None = None) -> PyslopConfig:
+        return PyslopConfig()
+
+    def discover_files(_root: Path, _options: DiscoveryOptions) -> list[str]:
+        return ["app.py"]
+
+    deps = RunnerDependencies(
+        load_config=load_config,
+        discover_files=discover_files,
+        load_rules=lambda _c, _r: {},
+    )
+    options = RunOptions(repo_root=tmp_path)
+
+    # Act
+    first = run(options, deps)
+    second = run(options, deps)
+
+    # Assert
+    assert first.findings_count == 1
+    assert second.findings_count == 1
+    assert len(calls) == 1
+
+
 # Why this test survives refactoring: index analyzers must not run when discovered files miss their roots.
 def test_runner_skips_index_analyzer_outside_index_roots(
     tmp_path: Path, monkeypatch

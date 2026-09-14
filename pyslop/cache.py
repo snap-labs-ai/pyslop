@@ -46,10 +46,14 @@ def store_cached_result(
 ) -> None:
     if getattr(spec, "inputs", INPUTS_FILENAMES) != INPUTS_FILENAMES or result.errors:
         return
+    original_by_posix = {_repo_relative_posix(path, repo_root): path for path in files}
     by_path: dict[str, list[Finding]] = {path: [] for path in files}
     for finding in result.findings:
-        if finding.path in by_path:
-            by_path[finding.path].append(finding)
+        original = original_by_posix.get(
+            _repo_relative_posix(finding.path, repo_root)
+        )
+        if original is not None:
+            by_path[original].append(finding)
     for file_path, findings in by_path.items():
         _write_entry(repo_root, spec.name, file_path, config_bytes, findings)
 
@@ -62,6 +66,17 @@ def _entry_path(
         (analyzer_name.encode(), file_path.encode(), file_bytes, config_bytes)
     )
     return cache_root(repo_root) / analyzer_name / f"{key}.json"
+
+
+def _repo_relative_posix(path: str, repo_root: Path) -> str:
+    candidate = Path(path)
+    root = repo_root.resolve()
+    if candidate.is_absolute():
+        try:
+            return candidate.resolve().relative_to(root).as_posix()
+        except ValueError:
+            return candidate.as_posix()
+    return candidate.as_posix()
 
 
 def _file_bytes(repo_root: Path, file_path: str) -> bytes:

@@ -7,6 +7,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 ## Unreleased
 
 - Add `examples/` consumer snapshot of the detect-shims extension.
+- Cache filename-analyzer hits when tools report absolute paths (Windows ruff JSON).
 
 ## 0.1.0
 
