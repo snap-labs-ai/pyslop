@@ -31,13 +31,13 @@ ALL_MODE_EXPECTED_IN_REPO_FINDINGS = 2
 def test_scaffold_creates_agents_skill_and_config(tmp_path: Path) -> None:
     result = scaffold(tmp_path)
 
-    assert tmp_path / ".agents" / "skills" / "pyslop" / "SKILL.md" in result.created
+    assert tmp_path / ".agents" / "skills" / "fix-code-slop" / "SKILL.md" in result.created
     assert tmp_path / "pyslop.toml" in result.created
     assert (
         tmp_path / ".pyslop" / "analyzers" / "ruff" / "config.toml"
         not in result.created
     )
-    skill_path = tmp_path / ".agents" / "skills" / "pyslop" / "SKILL.md"
+    skill_path = tmp_path / ".agents" / "skills" / "fix-code-slop" / "SKILL.md"
     assert skill_path.exists()
     assert (tmp_path / "pyslop.toml").exists()
     template = (
@@ -46,7 +46,7 @@ def test_scaffold_creates_agents_skill_and_config(tmp_path: Path) -> None:
         / "templates"
         / "defaults"
         / "skills"
-        / "pyslop"
+        / "fix-code-slop"
         / "SKILL.md"
     ).read_text(encoding="utf-8")
     assert skill_path.read_text(encoding="utf-8") == template
@@ -57,7 +57,7 @@ def test_scaffold_creates_claude_skill_target(tmp_path: Path) -> None:
     claude = scaffold(tmp_path / "claude", "claude")
 
     assert (
-        tmp_path / "claude" / ".claude" / "skills" / "pyslop" / "SKILL.md"
+        tmp_path / "claude" / ".claude" / "skills" / "fix-code-slop" / "SKILL.md"
         in claude.created
     )
     assert not (tmp_path / "claude" / ".agents" / "skills").exists()
@@ -65,7 +65,7 @@ def test_scaffold_creates_claude_skill_target(tmp_path: Path) -> None:
 
 # Why this test survives refactoring: non-overwrite behavior protects user-authored setup.
 def test_scaffold_does_not_overwrite_existing_files(tmp_path: Path) -> None:
-    skill = tmp_path / ".agents" / "skills" / "pyslop" / "SKILL.md"
+    skill = tmp_path / ".agents" / "skills" / "fix-code-slop" / "SKILL.md"
     skill.parent.mkdir(parents=True)
     skill.write_text("existing", encoding="utf-8")
     (tmp_path / "pyslop.toml").write_text("existing-config", encoding="utf-8")
@@ -81,12 +81,12 @@ def test_scaffold_does_not_overwrite_existing_files(tmp_path: Path) -> None:
 
 # Why this test survives refactoring: overwrite behavior allows users to replace corrupted or old files.
 def test_scaffold_overwrites_existing_files_when_requested(tmp_path: Path) -> None:
-    skill = tmp_path / ".agents" / "skills" / "pyslop" / "SKILL.md"
+    skill = tmp_path / ".agents" / "skills" / "fix-code-slop" / "SKILL.md"
     skill.parent.mkdir(parents=True)
     skill.write_text("existing", encoding="utf-8")
 
     # Add an extraneous file that should NOT be reported as created
-    extraneous = tmp_path / ".agents" / "skills" / "pyslop" / "other.md"
+    extraneous = tmp_path / ".agents" / "skills" / "fix-code-slop" / "other.md"
     extraneous.write_text("other", encoding="utf-8")
 
     (tmp_path / "pyslop.toml").write_text("existing-config", encoding="utf-8")
@@ -272,7 +272,7 @@ def test_built_wheel_contains_skill_and_ruff_config(tmp_path: Path) -> None:
     wheels = list(dist.glob("pyslop-*.whl"))
     assert wheels
     names = zipfile.ZipFile(wheels[0]).namelist()
-    assert any(path.endswith("templates/defaults/skills/pyslop/SKILL.md") for path in names)
+    assert any(path.endswith("templates/defaults/skills/fix-code-slop/SKILL.md") for path in names)
     assert any(
         "templates/defaults/analyzers/ruff/config.toml" in path for path in names
     )

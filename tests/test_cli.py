@@ -28,7 +28,7 @@ ALL_MODE_EXPECTED_IN_REPO_FINDINGS = 2
 # Why this test survives refactoring: it observes the runner's public report and exit-code contract.
 def test_cli_init_prints_created_files(tmp_path: Path, capsys, monkeypatch) -> None:
     created = (
-        tmp_path / ".agents" / "skills" / "pyslop" / "SKILL.md",
+        tmp_path / ".agents" / "skills" / "fix-code-slop" / "SKILL.md",
         tmp_path / "pyslop.toml",
     )
     monkeypatch.chdir(tmp_path)
@@ -48,7 +48,7 @@ def test_cli_init_prints_created_files(tmp_path: Path, capsys, monkeypatch) -> N
     captured = capsys.readouterr()
     assert result == 0
     assert "pyslop: init completed. Created 2 files:" in captured.out
-    assert "- .agents/skills/pyslop/SKILL.md" in captured.out
+    assert "- .agents/skills/fix-code-slop/SKILL.md" in captured.out
     assert "- pyslop.toml" in captured.out
 
 
@@ -59,7 +59,7 @@ def test_cli_init_writes_agents_skills(tmp_path: Path, monkeypatch) -> None:
     result = main(["init"])
 
     assert result == 0
-    assert (tmp_path / ".agents" / "skills" / "pyslop" / "SKILL.md").exists()
+    assert (tmp_path / ".agents" / "skills" / "fix-code-slop" / "SKILL.md").exists()
     assert not (tmp_path / ".cursor" / "skills").exists()
     assert not (tmp_path / ".claude" / "skills").exists()
 
@@ -71,7 +71,7 @@ def test_cli_init_claude_writes_claude_skills(tmp_path: Path, monkeypatch) -> No
     result = main(["init", "claude"])
 
     assert result == 0
-    assert (tmp_path / ".claude" / "skills" / "pyslop" / "SKILL.md").exists()
+    assert (tmp_path / ".claude" / "skills" / "fix-code-slop" / "SKILL.md").exists()
     assert not (tmp_path / ".agents" / "skills").exists()
 
 

@@ -1,6 +1,6 @@
 ---
-name: pyslop
-description: Drive `pyslop run` until the findings are empty. Use whenever the user wants to clean AI-generated Python slop, code smells, agent leftovers, placeholder comments, pass-through shims, or lint residue before a PR or ship — even if they only say "clean the branch", "fix pyslop", "work the findings", or "make CI green" without naming this skill. Prefer this over ad-hoc ruff/mypy loops when pyslop is in the repo.
+name: fix-code-slop
+description: Drive `pyslop run` until the findings are empty. Use whenever the user wants to clean AI-generated Python slop, code smells, agent leftovers, placeholder comments, pass-through shims, or lint residue before a PR or ship — even if they only say "clean the branch", "fix slop", "fix-code-slop", "fix pyslop", "work the findings", or "make CI green" without naming this skill. Prefer this over ad-hoc ruff/mypy loops when pyslop is in the repo.
 ---
 
 # Clear the pyslop findings
