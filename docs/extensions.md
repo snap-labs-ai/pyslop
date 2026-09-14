@@ -6,7 +6,7 @@ Install the bundled sample with:
 pyslop extensions detect-shims
 ```
 
-That copies the packaged detect-shims analyzer into `pyslop_extensions/detect_shims/` and appends it to `pyslop.toml`. It is an entry-point extension (not a command extension). A checked-in consumer snapshot lives in [`examples/pyslop_extensions/detect_shims`](../examples/pyslop_extensions/detect_shims).
+That copies the packaged detect-shims analyzer into `pyslop_extensions/detect_shims/` and appends it to `pyslop.toml`. It is an entry-point extension (not a command extension). A checked-in host-repo copy lives in [`examples/pyslop_extensions/detect_shims`](../examples/pyslop_extensions/detect_shims).
 
 ## Command extensions
 

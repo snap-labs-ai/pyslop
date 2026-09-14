@@ -1,0 +1,6 @@
+# This checkout. Host-repo copies live in examples/.
+# Tests mention slop on purpose (fixtures and expected rule ids).
+exclude = ["tests/**"]
+
+[analyzers]
+disable = []

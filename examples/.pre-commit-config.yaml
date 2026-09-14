@@ -1,0 +1,18 @@
+# Third-party host repo: copy to the project root as .pre-commit-config.yaml.
+#
+# Install pyslop as a dependency of that project first:
+#   uv add "pyslop[analyzers] @ git+https://github.com/snap-labs-ai/pyslop.git"
+#   uvx pre-commit install
+#
+# Local and CI pre-commit use the default analyzer stage (not --stage ci).
+# Without uv, change entry to: pyslop run --strict
+# Pre-commit appends staged paths; pyslop run accepts them as arguments.
+repos:
+  - repo: local
+    hooks:
+      - id: pyslop
+        name: pyslop
+        entry: uv run pyslop run --strict
+        language: system
+        types: [python]
+        pass_filenames: true

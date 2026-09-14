@@ -1,0 +1,13 @@
+# This repository's local gate. Not the third-party copy in examples/.
+# Requires a checkout with analyzers installed:
+#   uv sync --group dev --extra analyzers
+#   uvx pre-commit install
+repos:
+  - repo: local
+    hooks:
+      - id: pyslop
+        name: pyslop
+        entry: uv run pyslop run --strict
+        language: system
+        types: [python]
+        pass_filenames: true

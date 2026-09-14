@@ -15,7 +15,7 @@ from pyslop.scaffold import ScaffoldError, ScaffoldResult, scaffold, scaffold_ex
 from pyslop.types import RunOptions, RunResult
 
 _RUN_RESULT_ERRORS_EXIT_CODE = 2
-_INIT_TARGETS = ("cursor", "claude")
+_INIT_TARGETS = ("claude",)
 
 app = typer.Typer(
     add_completion=False,
@@ -27,6 +27,10 @@ app = typer.Typer(
 )
 
 FilesOption = Annotated[list[str] | None, typer.Option("--files")]
+PathsOption = Annotated[
+    list[str] | None,
+    typer.Argument(help="Explicit file or directory paths"),
+]
 AllOption = Annotated[bool, typer.Option("--all")]
 BaseOption = Annotated[str, typer.Option("--base", help="Git ref to diff against")]
 UncommittedOption = Annotated[bool, typer.Option("--uncommitted-only")]
@@ -94,6 +98,7 @@ def _analysis_options(
     uncommitted_only: bool,
     path: str,
     files: list[str] | None,
+    paths: list[str] | None,
     all_files: bool,
     config: str | None,
     files_from: str | None,
@@ -113,7 +118,7 @@ def _analysis_options(
     except ValueError as exc:
         print(render_error(str(exc), "pyslop run --help"), end="")
         raise typer.Exit(code=_RUN_RESULT_ERRORS_EXIT_CODE) from exc
-    file_list = list(files) if files else []
+    file_list = [*(files or ()), *(paths or ())]
     return RunOptions(
         repo_root=Path.cwd(),
         base=base or "main",
@@ -140,7 +145,49 @@ def _exit_analysis(kind: str, options: RunOptions) -> None:
 
 
 def _register_analysis(kind: str) -> None:
-    def command(
+    def run_body(
+        ctx: typer.Context,
+        base: str,
+        uncommitted_only: bool,
+        path: str,
+        files: list[str] | None,
+        paths: list[str] | None,
+        all_files: bool,
+        config: str | None,
+        files_from: str | None,
+        stage: str | None,
+        timings: bool,
+        no_cache: bool,
+        no_exclude: bool,
+        full: bool,
+        strict: bool,
+        fields: str | None,
+    ) -> None:
+        if kind == "callback" and ctx.invoked_subcommand is not None:
+            return
+        target = "analyzers" if kind == "analyzers" else "run"
+        _exit_analysis(
+            target,
+            _analysis_options(
+                base,
+                uncommitted_only,
+                path,
+                files,
+                paths,
+                all_files,
+                config,
+                files_from,
+                stage,
+                timings,
+                no_cache,
+                no_exclude,
+                full,
+                strict,
+                fields,
+            ),
+        )
+
+    def callback_command(
         ctx: typer.Context,
         base: BaseOption = "main",
         uncommitted_only: UncommittedOption = False,
@@ -157,27 +204,60 @@ def _register_analysis(kind: str) -> None:
         strict: StrictOption = False,
         fields: FieldsOption = None,
     ) -> None:
-        if kind == "callback" and ctx.invoked_subcommand is not None:
-            return
-        target = "analyzers" if kind == "analyzers" else "run"
-        _exit_analysis(
-            target,
-            _analysis_options(
-                base,
-                uncommitted_only,
-                path,
-                files,
-                all_files,
-                config,
-                files_from,
-                stage,
-                timings,
-                no_cache,
-                no_exclude,
-                full,
-                strict,
-                fields,
-            ),
+        run_body(
+            ctx,
+            base,
+            uncommitted_only,
+            path,
+            files,
+            None,
+            all_files,
+            config,
+            files_from,
+            stage,
+            timings,
+            no_cache,
+            no_exclude,
+            full,
+            strict,
+            fields,
+        )
+
+    def subcommand(
+        ctx: typer.Context,
+        base: BaseOption = "main",
+        uncommitted_only: UncommittedOption = False,
+        path: PathOption = "",
+        files: FilesOption = None,
+        paths: PathsOption = None,
+        all_files: AllOption = False,
+        config: ConfigOption = None,
+        files_from: FilesFromOption = None,
+        stage: StageOption = None,
+        timings: TimingsOption = False,
+        no_cache: NoCacheOption = False,
+        no_exclude: NoExcludeOption = False,
+        full: FullOption = False,
+        strict: StrictOption = False,
+        fields: FieldsOption = None,
+    ) -> None:
+        run_body(
+            ctx,
+            base,
+            uncommitted_only,
+            path,
+            files,
+            paths,
+            all_files,
+            config,
+            files_from,
+            stage,
+            timings,
+            no_cache,
+            no_exclude,
+            full,
+            strict,
+            fields,
         )
 
     names = {
@@ -185,11 +265,12 @@ def _register_analysis(kind: str) -> None:
         "run": "run",
         "analyzers": "analyzers",
     }
-    command.__name__ = names[kind]
     if kind == "callback":
-        app.callback(invoke_without_command=True)(command)
+        callback_command.__name__ = names[kind]
+        app.callback(invoke_without_command=True)(callback_command)
         return
-    app.command(names[kind])(command)
+    subcommand.__name__ = names[kind]
+    app.command(names[kind])(subcommand)
 
 
 _register_analysis("callback")
@@ -204,9 +285,10 @@ def init(
     overwrite: Annotated[bool, typer.Option("--overwrite")] = False,
 ) -> None:
     if target not in (None, *_INIT_TARGETS):
+        allowed = " or ".join(_INIT_TARGETS)
         print(
             render_error(
-                f"init target must be {' or '.join(_INIT_TARGETS)}",
+                f"unknown init target {target}; must be {allowed} or omitted",
                 "pyslop init --help",
             ),
             end="",

@@ -6,8 +6,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 
 ## Unreleased
 
-- Add `examples/` consumer snapshot of the detect-shims extension.
+- Add `examples/` host-repo copies of the detect-shims extension, pre-commit hook, and CI workflow (install pyslop as a third-party dependency).
 - Cache filename-analyzer hits when tools report absolute paths (Windows ruff JSON).
+- Add this repository's `.pre-commit-config.yaml` to dogfood `uv run pyslop run --strict`.
+- Accept leftover `pyslop run` path arguments so pre-commit can pass staged files.
+- Exclude `tests/**` in this repo's `pyslop.toml` so fixture source is not gated as slop.
+- Default `pyslop init` writes `.agents/skills`; `pyslop init claude` is the only agent-specific target.
 
 ## 0.1.0
 

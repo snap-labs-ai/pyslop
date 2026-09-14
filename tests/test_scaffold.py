@@ -27,17 +27,17 @@ ERROR_EXIT_CODE = 2
 ALL_MODE_EXPECTED_IN_REPO_FINDINGS = 2
 
 
-# Why this test survives refactoring: scaffold creates the documented Cursor setup files.
-def test_scaffold_creates_cursor_skill_and_config(tmp_path: Path) -> None:
-    result = scaffold(tmp_path, "cursor")
+# Why this test survives refactoring: scaffold creates the documented default Agent Skills setup.
+def test_scaffold_creates_agents_skill_and_config(tmp_path: Path) -> None:
+    result = scaffold(tmp_path)
 
-    assert tmp_path / ".cursor" / "skills" / "pyslop" / "SKILL.md" in result.created
+    assert tmp_path / ".agents" / "skills" / "pyslop" / "SKILL.md" in result.created
     assert tmp_path / "pyslop.toml" in result.created
     assert (
         tmp_path / ".pyslop" / "analyzers" / "ruff" / "config.toml"
         not in result.created
     )
-    skill_path = tmp_path / ".cursor" / "skills" / "pyslop" / "SKILL.md"
+    skill_path = tmp_path / ".agents" / "skills" / "pyslop" / "SKILL.md"
     assert skill_path.exists()
     assert (tmp_path / "pyslop.toml").exists()
     template = (
@@ -52,30 +52,26 @@ def test_scaffold_creates_cursor_skill_and_config(tmp_path: Path) -> None:
     assert skill_path.read_text(encoding="utf-8") == template
 
 
-# Why this test survives refactoring: alternate targets are a user-facing scaffold option.
-def test_scaffold_creates_alternate_skill_targets(tmp_path: Path) -> None:
+# Why this test survives refactoring: Claude is the only init path that is not .agents/skills.
+def test_scaffold_creates_claude_skill_target(tmp_path: Path) -> None:
     claude = scaffold(tmp_path / "claude", "claude")
-    generic = scaffold(tmp_path / "generic", None)
 
     assert (
         tmp_path / "claude" / ".claude" / "skills" / "pyslop" / "SKILL.md"
         in claude.created
     )
-    assert (
-        tmp_path / "generic" / ".agents" / "skills" / "pyslop" / "SKILL.md"
-        in generic.created
-    )
+    assert not (tmp_path / "claude" / ".agents" / "skills").exists()
 
 
 # Why this test survives refactoring: non-overwrite behavior protects user-authored setup.
 def test_scaffold_does_not_overwrite_existing_files(tmp_path: Path) -> None:
-    skill = tmp_path / ".cursor" / "skills" / "pyslop" / "SKILL.md"
+    skill = tmp_path / ".agents" / "skills" / "pyslop" / "SKILL.md"
     skill.parent.mkdir(parents=True)
     skill.write_text("existing", encoding="utf-8")
     (tmp_path / "pyslop.toml").write_text("existing-config", encoding="utf-8")
     (tmp_path / ".gitignore").write_text(".pyslop/cache/\n", encoding="utf-8")
 
-    result = scaffold(tmp_path, "cursor")
+    result = scaffold(tmp_path)
 
     assert skill not in result.created
     assert (tmp_path / "pyslop.toml") not in result.created
@@ -85,17 +81,17 @@ def test_scaffold_does_not_overwrite_existing_files(tmp_path: Path) -> None:
 
 # Why this test survives refactoring: overwrite behavior allows users to replace corrupted or old files.
 def test_scaffold_overwrites_existing_files_when_requested(tmp_path: Path) -> None:
-    skill = tmp_path / ".cursor" / "skills" / "pyslop" / "SKILL.md"
+    skill = tmp_path / ".agents" / "skills" / "pyslop" / "SKILL.md"
     skill.parent.mkdir(parents=True)
     skill.write_text("existing", encoding="utf-8")
 
     # Add an extraneous file that should NOT be reported as created
-    extraneous = tmp_path / ".cursor" / "skills" / "pyslop" / "other.md"
+    extraneous = tmp_path / ".agents" / "skills" / "pyslop" / "other.md"
     extraneous.write_text("other", encoding="utf-8")
 
     (tmp_path / "pyslop.toml").write_text("existing-config", encoding="utf-8")
 
-    result = scaffold(tmp_path, "cursor", overwrite=True)
+    result = scaffold(tmp_path, overwrite=True)
 
     assert skill in result.created
     assert (tmp_path / "pyslop.toml") in result.created
@@ -109,7 +105,7 @@ def test_scaffold_overwrites_existing_files_when_requested(tmp_path: Path) -> No
 
 # Why this test survives refactoring: init writes a stub overlay, not a forked rule corpus.
 def test_scaffold_init_does_not_copy_packaged_analyzer_rules(tmp_path: Path) -> None:
-    result = scaffold(tmp_path, "cursor")
+    result = scaffold(tmp_path)
 
     assert (tmp_path / "pyslop.toml").exists()
     assert not (tmp_path / ".pyslop" / "analyzers").exists()
@@ -118,7 +114,7 @@ def test_scaffold_init_does_not_copy_packaged_analyzer_rules(tmp_path: Path) -> 
 
 # Why this test survives refactoring: pyslop.toml template is overlay-first, not a corpus copy.
 def test_scaffold_init_pyslop_toml_is_stub_overlay(tmp_path: Path) -> None:
-    scaffold(tmp_path, "cursor")
+    scaffold(tmp_path)
 
     config = (tmp_path / "pyslop.toml").read_text(encoding="utf-8")
     assert "[analyzers]" in config
@@ -128,14 +124,14 @@ def test_scaffold_init_pyslop_toml_is_stub_overlay(tmp_path: Path) -> None:
 
 # Why this test survives refactoring: init and extensions are separate user-facing concerns.
 def test_scaffold_init_does_not_create_extension_files(tmp_path: Path) -> None:
-    scaffold(tmp_path, "cursor")
+    scaffold(tmp_path)
 
     assert not (tmp_path / "pyslop_extensions").exists()
 
 
 # Why this test survives refactoring: extensions command has an all-installed tracer path.
 def test_scaffold_extensions_installs_all_when_no_names_given(tmp_path: Path) -> None:
-    scaffold(tmp_path, "cursor")
+    scaffold(tmp_path)
 
     scaffold_extensions(tmp_path)
 
@@ -147,7 +143,7 @@ def test_scaffold_extensions_installs_all_when_no_names_given(tmp_path: Path) ->
 
 # Why this test survives refactoring: named extension install lets users opt into a subset.
 def test_scaffold_extensions_installs_only_named_extension(tmp_path: Path) -> None:
-    scaffold(tmp_path, "cursor")
+    scaffold(tmp_path)
 
     scaffold_extensions(tmp_path, ("detect-shims",))
 
@@ -165,7 +161,7 @@ def test_scaffold_extensions_errors_when_pyslop_toml_missing(tmp_path: Path) -> 
 
 # Why this test survives refactoring: unknown extension names should fail fast for user feedback.
 def test_scaffold_extensions_errors_on_unknown_extension_name(tmp_path: Path) -> None:
-    scaffold(tmp_path, "cursor")
+    scaffold(tmp_path)
 
     with pytest.raises(ScaffoldError) as excinfo:
         scaffold_extensions(tmp_path, ("not-real",))
@@ -176,7 +172,7 @@ def test_scaffold_extensions_errors_on_unknown_extension_name(tmp_path: Path) ->
 def test_scaffold_extensions_skips_toml_append_when_extension_already_registered(
     tmp_path: Path,
 ) -> None:
-    scaffold(tmp_path, "cursor")
+    scaffold(tmp_path)
     scaffold_extensions(tmp_path, ("detect-shims",))
 
     scaffold_extensions(tmp_path, ("detect-shims",))
@@ -189,7 +185,7 @@ def test_scaffold_extensions_skips_toml_append_when_extension_already_registered
 def test_scaffold_extensions_preserves_existing_files_without_overwrite(
     tmp_path: Path,
 ) -> None:
-    scaffold(tmp_path, "cursor")
+    scaffold(tmp_path)
     analyzer_path = tmp_path / "pyslop_extensions" / "detect_shims" / "analyzer.py"
     analyzer_path.parent.mkdir(parents=True, exist_ok=True)
     analyzer_path.write_text("# user edit\n", encoding="utf-8")
@@ -203,7 +199,7 @@ def test_scaffold_extensions_preserves_existing_files_without_overwrite(
 def test_scaffold_extensions_overwrites_existing_files_when_requested(
     tmp_path: Path,
 ) -> None:
-    scaffold(tmp_path, "cursor")
+    scaffold(tmp_path)
     analyzer_path = tmp_path / "pyslop_extensions" / "detect_shims" / "analyzer.py"
     analyzer_path.parent.mkdir(parents=True, exist_ok=True)
     analyzer_path.write_text("# user edit\n", encoding="utf-8")
@@ -218,7 +214,7 @@ def test_scaffold_extensions_overwrites_existing_files_when_requested(
 def test_scaffold_creates_gitignore_with_cache_entry_when_missing(
     tmp_path: Path,
 ) -> None:
-    result = scaffold(tmp_path, "cursor")
+    result = scaffold(tmp_path)
 
     gitignore = tmp_path / ".gitignore"
     assert gitignore.exists()
@@ -231,7 +227,7 @@ def test_scaffold_appends_cache_entry_to_existing_gitignore(tmp_path: Path) -> N
     gitignore = tmp_path / ".gitignore"
     gitignore.write_text("*.pyc\n", encoding="utf-8")
 
-    scaffold(tmp_path, "cursor")
+    scaffold(tmp_path)
 
     assert gitignore.read_text(encoding="utf-8") == "*.pyc\n.pyslop/cache/\n"
 
@@ -243,14 +239,14 @@ def test_scaffold_does_not_duplicate_cache_entry_when_already_present(
     gitignore = tmp_path / ".gitignore"
     gitignore.write_text(".pyslop/cache/\n", encoding="utf-8")
 
-    scaffold(tmp_path, "cursor")
+    scaffold(tmp_path)
 
     assert gitignore.read_text(encoding="utf-8") == ".pyslop/cache/\n"
 
 
 # Why this test survives refactoring: packaged init must not wire Data Studio Reflex plugins.
 def test_scaffold_init_toml_does_not_register_reflex_plugins(tmp_path: Path) -> None:
-    scaffold(tmp_path, "cursor")
+    scaffold(tmp_path)
     config = (tmp_path / "pyslop.toml").read_text(encoding="utf-8")
     assert "reflex-state-lock" not in config
     assert "reflex-laggy-input" not in config

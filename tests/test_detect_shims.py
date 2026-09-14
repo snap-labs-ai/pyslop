@@ -17,7 +17,7 @@ _EXAMPLE_DETECT_SHIMS = _REPO_ROOT / "examples/pyslop_extensions/detect_shims"
 
 
 class TestExampleDetectShimsSnapshot:
-    # Why this test survives refactoring: examples/ is a published consumer snapshot of the packaged template.
+    # Why this test survives refactoring: examples/ is a published host-repo copy of the packaged template.
     def test_example_detect_shims_file_set_matches_packaged_template(self) -> None:
         template_names = {path.name for path in _TEMPLATE_DETECT_SHIMS.iterdir()}
         example_names = {path.name for path in _EXAMPLE_DETECT_SHIMS.iterdir()}
@@ -93,7 +93,7 @@ def wrapper(data):
 
 
 def _scaffold_repo_with_detect_shims(tmp_path: Path) -> None:
-    scaffold(tmp_path, "cursor")
+    scaffold(tmp_path)
     scaffold_extensions(tmp_path, ("detect-shims",))
     pyslop_config = tmp_path / "pyslop.toml"
     pyslop_config.write_text(

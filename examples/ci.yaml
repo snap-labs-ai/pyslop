@@ -1,0 +1,45 @@
+# Third-party host repo: copy to .github/workflows/ci.yaml, then keep one job
+# (or both).
+#
+# Install pyslop as a dependency of that project first:
+#   uv add "pyslop[analyzers] @ git+https://github.com/snap-labs-ai/pyslop.git"
+#
+# pyslop-all: whole tree.
+# pyslop-changed: git triple-dot vs the PR base (main on push). Empty on a
+# push that is already origin/main; use pyslop-all as the main-branch gate.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  pyslop-all:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv python install 3.12
+      - run: uv sync
+      - run: uv run pyslop run --all --stage ci --strict
+
+  pyslop-changed:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v5
+      - run: uv python install 3.12
+      - run: uv sync
+      - run: git fetch origin "${BASE_REF}"
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref || 'main' }}
+      - run: uv run pyslop run --stage ci --strict --base "origin/${BASE_REF}"
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref || 'main' }}

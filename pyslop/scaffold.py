@@ -68,8 +68,6 @@ def scaffold(
 
 
 def _skills_target_root(repo_root: Path, target: str | None) -> Path:
-    if target == "cursor":
-        return repo_root / ".cursor" / "skills"
     if target == "claude":
         return repo_root / ".claude" / "skills"
     return repo_root / ".agents" / "skills"

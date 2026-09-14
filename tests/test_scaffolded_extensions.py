@@ -105,7 +105,7 @@ class TestRegexRules:
 
 
 def _repo_with_regex(tmp_path: Path, extra: str) -> None:
-    scaffold(tmp_path, "cursor")
+    scaffold(tmp_path)
     pyslop_config = tmp_path / "pyslop.toml"
     text = pyslop_config.read_text(encoding="utf-8").replace(
         "disable = []", BUILTIN_DISABLE_LIST

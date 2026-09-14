@@ -52,11 +52,47 @@ def test_cli_init_prints_created_files(tmp_path: Path, capsys, monkeypatch) -> N
     assert "- pyslop.toml" in captured.out
 
 
+# Why this test survives refactoring: default init installs the shared Agent Skills path.
+def test_cli_init_writes_agents_skills(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.chdir(tmp_path)
+
+    result = main(["init"])
+
+    assert result == 0
+    assert (tmp_path / ".agents" / "skills" / "pyslop" / "SKILL.md").exists()
+    assert not (tmp_path / ".cursor" / "skills").exists()
+    assert not (tmp_path / ".claude" / "skills").exists()
+
+
+# Why this test survives refactoring: claude is the only agent-specific init target.
+def test_cli_init_claude_writes_claude_skills(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.chdir(tmp_path)
+
+    result = main(["init", "claude"])
+
+    assert result == 0
+    assert (tmp_path / ".claude" / "skills" / "pyslop" / "SKILL.md").exists()
+    assert not (tmp_path / ".agents" / "skills").exists()
+
+
+# Why this test survives refactoring: Cursor and other unified agents are not init targets.
+def test_cli_init_rejects_cursor_target(tmp_path: Path, monkeypatch, capsys) -> None:
+    monkeypatch.chdir(tmp_path)
+
+    result = main(["init", "cursor"])
+
+    captured = capsys.readouterr()
+    assert result == ERROR_EXIT_CODE
+    assert "error:" in captured.out
+    assert "cursor" in captured.out
+    assert not (tmp_path / ".cursor" / "skills").exists()
+
+
 # Why this test survives refactoring: extensions command should install templates in existing init setup.
 def test_cli_extensions_standalone_installs_templates(
     tmp_path: Path, monkeypatch
 ) -> None:
-    scaffold(tmp_path, "cursor")
+    scaffold(tmp_path)
     monkeypatch.chdir(tmp_path)
 
     result = main(["extensions"])
@@ -216,6 +252,29 @@ def test_cli_forwards_multiple_explicit_files(tmp_path: Path, monkeypatch) -> No
     assert captured == {
         "files": ("app/a.py", "backend/b.py"),
         "strict": False,
+    }
+
+
+# Why this test survives refactoring: pre-commit appends staged paths after the hook entry.
+def test_cli_forwards_positional_paths(tmp_path: Path, monkeypatch) -> None:
+    captured: dict[str, tuple[str, ...] | bool | None] = {}
+
+    def capture_run(opts: RunOptions) -> RunResult:
+        captured["files"] = opts.files
+        captured["strict"] = opts.strict
+        return RunResult(
+            exit_code=0, findings_count=0, stdout_text="findings: 0 in this file set\n"
+        )
+
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr("pyslop.cli.run", capture_run)
+
+    result = main(["run", "--strict", "app/a.py", "backend/b.py"])
+
+    assert result == 0
+    assert captured == {
+        "files": ("app/a.py", "backend/b.py"),
+        "strict": True,
     }
 
 

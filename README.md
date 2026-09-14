@@ -1,6 +1,10 @@
 # About
 
-`pyslop` is an AXI-first CLI that aggregates Python static analyzer findings onto stdout as TOON tables for AI agents. Missing optional tools are skipped; started tool failures exit 2.
+`pyslop` runs Python static analysis on a git diff (or the files you pass) and prints one table of findings. Each row has a path, rule, message, and a `fix` hint. Agents work that list until it is empty; `--strict` fails pre-commit and CI if anything is left.
+
+Ruff, Mypy, and similar tools still do their jobs. Configuring them one by one does not. Each tool has its own config, output, and exit code, so you end up stitching reports yourself and hoping CI, pre-commit, and the agent all look at the same files. `pyslop` keeps those analyzers, overlays slop-specific rules and extensions (placeholder comments, pass-through shims, and the rest of the generated residue those tools ignore), and returns a single AXI table. You do not maintain a second style guide.
+
+That is why it stops slop better than a manual stack. Style and type checkers were not written to flag agent leftovers. A per-tool setup also leaves gaps: different file sets, findings an agent cannot act on, and a green CI that never saw the residue. One command, one table, one `--strict` gate closes that loop.
 
 # Installation
 
@@ -21,8 +25,8 @@ Then `pyslop --help`.
 ### Initialization
 
 ```bash
-pyslop init cursor --overwrite
-# or for Claude:
+pyslop init
+# Claude Code (writes .claude/skills instead of .agents/skills):
 pyslop init claude --overwrite
 ```
 
@@ -32,7 +36,7 @@ Install the bundled sample extension (protocol v1):
 pyslop extensions detect-shims
 ```
 
-See [docs/extensions.md](docs/extensions.md) and the consumer snapshot in [examples/](examples/).
+See [docs/extensions.md](docs/extensions.md) and the host-repo copies in [examples/](examples/).
 
 # CLI
 
@@ -56,7 +60,7 @@ pyslop analyzers
 - `--base <ref>`: Git ref to diff against (default: `main`).
 - `--uncommitted-only`: Only analyze uncommitted changes.
 - `--path <path>`: Restrict git-diff mode to a specific path.
-- `--files <path>`: Analyze an explicit file or directory (repeat the flag).
+- `--files <path>`: Analyze an explicit file or directory (repeat the flag). Extra path arguments after `run` are the same (pre-commit uses this).
 - `--files-from <path>`: Read additional paths from a file, one per line.
 - `--all`: Analyze all supported files without git.
 - `--stage ci`: Include CI-stage analyzers (this is the only accepted value).
@@ -70,19 +74,11 @@ pyslop analyzers
 
 Index analyzers (`inputs = "index"`) are not cached. `pyslop init` gitignores `.pyslop/cache/`.
 
-Portable pre-commit:
-
-```yaml
-- id: pyslop
-  name: pyslop
-  entry: pyslop run --strict --files
-  language: system
-  types: [python]
-```
+After installing pyslop in **your** project, copy [examples/.pre-commit-config.yaml](examples/.pre-commit-config.yaml) to that repo's root and [examples/ci.yaml](examples/ci.yaml) to `.github/workflows/ci.yaml`. Pre-commit stays a host-repo tool (`uvx pre-commit install`); it is not a pyslop dependency. Local hooks use `--strict` on staged files. The CI example has two jobs: `pyslop-all` (`--all --stage ci --strict`) and `pyslop-changed` (`--stage ci --strict --base` vs the PR base). Keep the job that matches your gate. This repository's own hook is the root [`.pre-commit-config.yaml`](.pre-commit-config.yaml); do not replace it with the example file.
 
 `pyslop init`:
 
-- `--target {cursor,claude}`: Skill destination (positional).
+- `claude`: Write `.claude/skills` instead of `.agents/skills`.
 - `--overwrite`: Overwrite existing scaffold files.
 - `--extensions`: Also install named bundled extensions.
 
@@ -149,5 +145,8 @@ This package is **0.y.z** until 1.0.0. Before 1.0.0, CLI flags and AXI table sha
 
 ```bash
 uv sync --group dev --extra analyzers
+uvx pre-commit install
 uv run pytest
 ```
+
+The root [`.pre-commit-config.yaml`](.pre-commit-config.yaml) runs the in-tree CLI on staged Python files (`uv run pyslop run --strict`). [`pyslop.toml`](pyslop.toml) excludes `tests/**` because those files mention slop on purpose. Host-repo install snippets live in [examples/](examples/).
