@@ -6,8 +6,8 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Annotated
 
-import click
 import typer
+from typer._click.exceptions import ClickException, UsageError
 
 from pyslop.axi import parse_finding_fields, render_error
 from pyslop.runner import inspect_analyzers, run
@@ -72,15 +72,15 @@ def main(argv: Sequence[str] | None = None) -> int:
     except ScaffoldError as exc:
         print(render_error(str(exc), "pyslop init --help"), end="")
         result = _RUN_RESULT_ERRORS_EXIT_CODE
-    except click.exceptions.UsageError as exc:
+    except UsageError as exc:
         print(
             render_error(exc.format_message(), "pyslop run --help"),
             end="",
         )
         result = _RUN_RESULT_ERRORS_EXIT_CODE
-    except click.exceptions.Exit as exc:
+    except typer.Exit as exc:
         result = int(exc.exit_code)
-    except click.ClickException as exc:
+    except ClickException as exc:
         print(
             render_error(exc.format_message(), "pyslop run --help"),
             end="",
