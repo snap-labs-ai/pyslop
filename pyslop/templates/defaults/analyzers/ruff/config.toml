@@ -4,8 +4,8 @@
 [lint]
 preview = true
 explicit-preview-rules = true
-select = ["E", "F", "PL", "B", "SIM", "C4", "RET", "S", "PERF"]
-extend-select = ["FA", "TID", "TC", "C901", "G", "PT", "UP", "ERA001", "BLE001", "ARG", "PIE790", "PLR0904"]
+select = ["E", "F", "PL", "B", "SIM", "C4", "RET", "S", "PERF", "RUF", "I", "PIE", "T20"]
+extend-select = ["FA", "TID", "TC", "C901", "G", "PT", "UP", "ERA001", "BLE001", "ARG", "PLR0904"]
 ignore = ["E501", "PLW0108", "TC002", "TC001", "TC003", "S101", "S603"]
 
 [lint.pylint]
@@ -20,7 +20,7 @@ max-public-methods = 10
 max-complexity = 10
 
 [lint.per-file-ignores]
-"**/cli.py" = ["PLR0913"]
+"**/cli.py" = ["PLR0913", "T201"]
 # Broad glob keeps the arg-count and unused-argument exemptions for any
 # test-named module (pytest fixtures occupy unused parameters by design).
 "**/*test*.py" = ["PLR0913", "PLR0904", "ARG"]
