@@ -13,8 +13,9 @@ uv add "pyslop[analyzers] @ git+https://github.com/snap-labs-ai/pyslop.git"
 | Local hook | [`.pre-commit-config.yaml`](.pre-commit-config.yaml) → your repo-root `.pre-commit-config.yaml` | `pyslop run --strict` (paths from pre-commit) | default (`always` + `pre-commit`) |
 | CI whole repo | [`ci.yaml`](ci.yaml) job `pyslop-all` | `pyslop run --all --stage ci --strict` | adds CI-only analyzers (pylint) |
 | CI changed files | [`ci.yaml`](ci.yaml) job `pyslop-changed` | `pyslop run --stage ci --strict --base origin/<base>` | same, limited to `base...HEAD` plus uncommitted |
+| CI host extensions | [`ci.yaml`](ci.yaml) job `pyslop-extensions` | `pytest pyslop_extensions --confcutdir=pyslop_extensions` | not a pyslop analyzer; tests your plugins |
 
-Copy [`ci.yaml`](ci.yaml) to `.github/workflows/ci.yaml` and keep the job that matches your gate (or both). `pre-commit` is a tool in your repo (`uvx pre-commit install`). It is not a pyslop install extra.
+Copy [`ci.yaml`](ci.yaml) to `.github/workflows/ci.yaml` and keep the job that matches your gate (or both). Keep `pyslop-extensions` if you pytest host plugins; `--confcutdir` stops pytest from loading a parent `conftest.py`. `pre-commit` is a tool in your repo (`uvx pre-commit install`). It is not a pyslop install extra.
 
 After copying the hook file:
 

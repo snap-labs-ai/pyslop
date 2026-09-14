@@ -74,7 +74,7 @@ pyslop analyzers
 
 Index analyzers (`inputs = "index"`) are not cached. `pyslop init` gitignores `.pyslop/cache/`.
 
-After installing pyslop in **your** project, copy [examples/.pre-commit-config.yaml](examples/.pre-commit-config.yaml) to that repo's root and [examples/ci.yaml](examples/ci.yaml) to `.github/workflows/ci.yaml`. Pre-commit stays a host-repo tool (`uvx pre-commit install`); it is not a pyslop dependency. Local hooks use `--strict` on staged files. The CI example has two jobs: `pyslop-all` (`--all --stage ci --strict`) and `pyslop-changed` (`--stage ci --strict --base` vs the PR base). Keep the job that matches your gate. This repository's own hook is the root [`.pre-commit-config.yaml`](.pre-commit-config.yaml); do not replace it with the example file.
+After installing pyslop in **your** project, copy [examples/.pre-commit-config.yaml](examples/.pre-commit-config.yaml) to that repo's root and [examples/ci.yaml](examples/ci.yaml) to `.github/workflows/ci.yaml`. Pre-commit stays a host-repo tool (`uvx pre-commit install`); it is not a pyslop dependency. Local hooks use `--strict` on staged files. The CI example has `pyslop-all` (`--all --stage ci --strict`), `pyslop-changed` (`--stage ci --strict --base` vs the PR base), and optional `pyslop-extensions` (`pytest pyslop_extensions --confcutdir=pyslop_extensions` so a parent `conftest.py` is not loaded). Keep the job that matches your gate. This repository's own hook is the root [`.pre-commit-config.yaml`](.pre-commit-config.yaml); do not replace it with the example file.
 
 `pyslop init`:
 
@@ -129,7 +129,7 @@ stage = "always"
 inputs = "filenames"
 ```
 
-Index extensions set `inputs = "index"` and `index-roots`. They receive `PYSLOP_INDEX_ROOTS`.
+Index extensions set `inputs = "index"` and `index-roots`. They receive `PYSLOP_INDEX_ROOTS`. Host-repo tests of those plugins should use `--confcutdir=pyslop_extensions`; see [docs/extensions.md](docs/extensions.md).
 
 # How to run
 
