@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import shutil
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 
 from pyslop.types import Finding, RuleMetadata
@@ -28,22 +29,27 @@ def parse_finding_fields(raw: str | None) -> tuple[str, ...] | None:
     return tuple(parts)
 
 
+@dataclass(frozen=True)
+class FindingsRender:
+    repo_root: Path | None = None
+    full: bool = False
+    bin_path: str | None = None
+    fields: tuple[str, ...] | None = None
+    skipped: tuple[tuple[str, str], ...] = ()
+
+
 def render_findings(
     findings: list[Finding] | tuple[Finding, ...],
     rules: dict[str, RuleMetadata],
-    *,
-    repo_root: Path | None = None,
-    full: bool = False,
-    bin_path: str | None = None,
-    fields: tuple[str, ...] | None = None,
-    skipped: tuple[tuple[str, str], ...] = (),
+    view: FindingsRender | None = None,
 ) -> str:
-    if repo_root:
-        findings = [_relativize(finding, repo_root) for finding in findings]
-    columns = fields or DEFAULT_FINDING_FIELDS
-    limit = FULL_MESSAGE_CHAR_LIMIT if full else PREVIEW_MESSAGE_CHAR_LIMIT
+    options = view or FindingsRender()
+    if options.repo_root:
+        findings = [_relativize(finding, options.repo_root) for finding in findings]
+    columns = options.fields or DEFAULT_FINDING_FIELDS
+    limit = FULL_MESSAGE_CHAR_LIMIT if options.full else PREVIEW_MESSAGE_CHAR_LIMIT
     lines = [
-        f"bin: {bin_path or _bin_display()}",
+        f"bin: {options.bin_path or _bin_display()}",
         f"description: {AXI_DESCRIPTION}",
     ]
     truncated = False
@@ -58,7 +64,20 @@ def render_findings(
             cells, was_truncated = _finding_cells(finding, rules, columns, limit)
             truncated = truncated or was_truncated
             lines.append(f"  {','.join(cells)}")
-    _append_skipped(lines, skipped)
+    _append_skipped(lines, options.skipped)
+    help_items = _help_items(truncated, options.full, columns, options.skipped)
+    if help_items:
+        lines.append(f"help[{len(help_items)}]:")
+        lines.extend(f"  {item}" for item in help_items)
+    return "\n".join(lines) + "\n"
+
+
+def _help_items(
+    truncated: bool,
+    full: bool,
+    columns: tuple[str, ...],
+    skipped: tuple[tuple[str, str], ...],
+) -> list[str]:
     help_items: list[str] = []
     if truncated and not full and "message" in columns:
         help_items.append(HELP_FULL)
@@ -66,11 +85,7 @@ def render_findings(
         help_items.append("Message truncated; total size is noted in the message cell")
     if skipped:
         help_items.append(HELP_ANALYZERS)
-    if help_items:
-        lines.append(f"help[{len(help_items)}]:")
-        for item in help_items:
-            lines.append(f"  {item}")
-    return "\n".join(lines) + "\n"
+    return help_items
 
 
 def render_analyzers(
@@ -84,8 +99,7 @@ def render_analyzers(
         f"description: {AXI_DESCRIPTION}",
         f"analyzers[{len(runnable)}]:",
     ]
-    for name in runnable:
-        lines.append(f"  {name}")
+    lines.extend(f"  {name}" for name in runnable)
     _append_skipped(lines, skipped)
     if skipped:
         lines.append("help[1]:")

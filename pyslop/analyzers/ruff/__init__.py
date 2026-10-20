@@ -5,10 +5,10 @@ from pathlib import Path
 from pyslop.analyzers.base import (
     CommandSpec,
     Executor,
-    tool_command,
     parsed_tool_json_list,
     python_source_files,
     run_command,
+    tool_command,
 )
 from pyslop.types import AnalyzerConfig, AnalyzerRunResult, Finding
 

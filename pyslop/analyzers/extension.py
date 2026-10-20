@@ -3,15 +3,14 @@ from __future__ import annotations
 import importlib
 import importlib.util
 import json
-import sys
 import subprocess
+import sys
 from collections.abc import Callable, Sequence
 from pathlib import Path
 from subprocess import CompletedProcess
 
 from pyslop.path_utils import resolve_repo_path
 from pyslop.types import AnalyzerRunResult, ExtensionConfig, Finding
-
 
 Executor = Callable[[Sequence[str]], CompletedProcess[str]]
 TOOL_FAILURE_MIN_EXIT_CODE = 2

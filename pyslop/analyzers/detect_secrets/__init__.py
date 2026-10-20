@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import subprocess
-import tomllib
 from pathlib import Path
 from typing import cast
+
+import tomllib
 
 from pyslop.analyzers.base import Executor, _subprocess_run, parsed_tool_json_stdout
 from pyslop.types import AnalyzerConfig, AnalyzerRunResult, Finding
@@ -50,7 +51,7 @@ def run(  # noqa
         return AnalyzerRunResult(
             errors=(f"detect-secrets failed with exit code {exc.returncode}{suffix}",)
         )
-    except Exception as exc:
+    except OSError as exc:
         return AnalyzerRunResult(errors=(f"detect-secrets failed to execute: {exc}",))
     if result.returncode >= TOOL_ERROR_EXIT_CODE:
         detail = (result.stderr or result.stdout).strip()
@@ -62,7 +63,7 @@ def run(  # noqa
         )
     try:
         return AnalyzerRunResult(findings=tuple(parse_output(result.stdout)))
-    except Exception as exc:
+    except (ValueError, TypeError, UnicodeError) as exc:
         return AnalyzerRunResult(
             errors=(f"detect-secrets produced unparseable output: {exc}",)
         )

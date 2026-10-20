@@ -5,6 +5,7 @@ import pytest
 from pyslop.axi import (
     FULL_MESSAGE_CHAR_LIMIT,
     PREVIEW_MESSAGE_CHAR_LIMIT,
+    FindingsRender,
     parse_finding_fields,
     render_error,
     render_findings,
@@ -25,7 +26,9 @@ class TestRenderFindings:
             ),
         }
 
-        output = render_findings(findings, rules, bin_path="~/bin/pyslop")
+        output = render_findings(
+            findings, rules, FindingsRender(bin_path="~/bin/pyslop")
+        )
 
         assert "bin: ~/bin/pyslop" in output
         assert "description: Unified Python static analysis for AI slop" in output
@@ -39,7 +42,7 @@ class TestRenderFindings:
         assert "Too many arguments" in output.split("findings[1]", 1)[1]
 
     def test_render_findings_states_zero_when_clean(self) -> None:
-        output = render_findings([], {}, bin_path="pyslop")
+        output = render_findings([], {}, FindingsRender(bin_path="pyslop"))
 
         assert "findings: 0 in this file set" in output
         assert "findings[" not in output
@@ -48,7 +51,7 @@ class TestRenderFindings:
         message = "x" * (PREVIEW_MESSAGE_CHAR_LIMIT + 10)
         findings = [Finding("app/a.py", 1, "custom", message)]
 
-        output = render_findings(findings, {}, bin_path="pyslop")
+        output = render_findings(findings, {}, FindingsRender(bin_path="pyslop"))
 
         assert "findings[1]{path,line,rule,fix,message}:" in output
         assert f"{PREVIEW_MESSAGE_CHAR_LIMIT + 10} chars total" in output
@@ -60,8 +63,7 @@ class TestRenderFindings:
         output = render_findings(
             findings,
             {},
-            bin_path="pyslop",
-            fields=("path", "line", "rule"),
+            FindingsRender(bin_path="pyslop", fields=("path", "line", "rule")),
         )
 
         assert "findings[1]{path,line,rule}:" in output
@@ -72,8 +74,10 @@ class TestRenderFindings:
         output = render_findings(
             [],
             {},
-            bin_path="pyslop",
-            skipped=(("complexipy", "executable not on PATH"),),
+            FindingsRender(
+                bin_path="pyslop",
+                skipped=(("complexipy", "executable not on PATH"),),
+            ),
         )
 
         assert "skipped[1]{name,reason}:" in output
@@ -88,7 +92,9 @@ class TestRenderFindings:
         message = "x" * (FULL_MESSAGE_CHAR_LIMIT + 50)
         findings = [Finding("app/a.py", 1, "custom", message)]
 
-        output = render_findings(findings, {}, full=True, bin_path="pyslop")
+        output = render_findings(
+            findings, {}, FindingsRender(full=True, bin_path="pyslop")
+        )
 
         assert "findings[1]{path,line,rule,fix,message}:" in output
         assert f"{FULL_MESSAGE_CHAR_LIMIT + 50} chars total" in output
@@ -96,7 +102,9 @@ class TestRenderFindings:
     def test_render_findings_relativizes_absolute_paths(self, tmp_path: Path) -> None:
         findings = [Finding(str(tmp_path / "app" / "a.py"), 10, "custom", "Issue")]
 
-        output = render_findings(findings, {}, repo_root=tmp_path, bin_path="pyslop")
+        output = render_findings(
+            findings, {}, FindingsRender(repo_root=tmp_path, bin_path="pyslop")
+        )
 
         assert "app/a.py,10,custom" in output
 

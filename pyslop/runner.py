@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Callable, Iterator
+from collections.abc import Callable, Iterator, Mapping
 from contextlib import contextmanager
 from dataclasses import dataclass, field, fields
 from fnmatch import fnmatch
@@ -20,13 +20,14 @@ from pyslop.analyzers import (
     too_many_module_functions,
     vulture,
 )
+from pyslop.analyzers.base import Executor
 from pyslop.analyzers.extension import run_one_extension
 from pyslop.analyzers.registry import (
     analyzers_for_run,
     skipped_builtins_for_stage,
     stages_for_run,
 )
-from pyslop.axi import render_analyzers, render_error, render_findings
+from pyslop.axi import FindingsRender, render_analyzers, render_error, render_findings
 from pyslop.cache import load_cached_result, store_cached_result
 from pyslop.config import ConfigError, load_config
 from pyslop.discovery import (
@@ -69,7 +70,7 @@ class AnalyzerModule(Protocol):
         files: list[str],
         repo_root: Path,
         config: AnalyzerConfig,
-        executor: object | None = None,
+        executor: Executor | None = None,
         /,
     ) -> AnalyzerRunResult: ...
 
@@ -207,10 +208,12 @@ def _write_output_and_result(params: _OutputParams) -> RunResult:
     stdout_text = render_findings(
         list(params.analyzer_result.findings),
         params.rules,
-        repo_root=params.options.repo_root,
-        full=params.options.full,
-        fields=params.options.fields,
-        skipped=params.analyzer_result.skipped,
+        FindingsRender(
+            repo_root=params.options.repo_root,
+            full=params.options.full,
+            fields=params.options.fields,
+            skipped=params.analyzer_result.skipped,
+        ),
     )
     if params.analyzer_result.errors:
         error_text = "".join(
@@ -339,7 +342,7 @@ def _public_started_error(error: str) -> str:
 def _run_one_spec(
     spec: AnalyzerSpec,
     params: _AnalyzerRunParams,
-    analyzer_modules: dict[str, AnalyzerModule],
+    analyzer_modules: Mapping[str, AnalyzerModule],
 ) -> AnalyzerRunResult:
     config_bytes = _analyzer_config_bytes(params, spec)
     if not params.no_cache:
@@ -369,7 +372,9 @@ def _run_one_spec(
         with _index_roots_environ(spec):
             result = run_one_extension(extension, params.files, params.repo_root)
     if not params.no_cache:
-        store_cached_result(params.repo_root, spec, params.files, config_bytes, result)
+        store_cached_result(
+            params.repo_root, spec, params.files, (config_bytes, result)
+        )
     return result
 
 

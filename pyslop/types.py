@@ -5,7 +5,6 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from subprocess import CompletedProcess
 
-
 STAGE_PRE_COMMIT = "pre-commit"
 STAGE_CI = "ci"
 STAGE_ALWAYS = "always"

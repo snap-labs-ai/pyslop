@@ -1,7 +1,9 @@
 from __future__ import annotations
 
-import tomllib
+from collections.abc import Mapping
 from pathlib import Path
+
+import tomllib
 
 from pyslop.config import parse_rules_document
 from pyslop.packaged import load_packaged_rules, merge_rules
@@ -40,7 +42,7 @@ def _load_extension_rules(
 
 
 def _load_rules_from_configs(
-    configs: dict[str, object], repo_root: Path, kind: str
+    configs: Mapping[str, object], repo_root: Path, kind: str
 ) -> dict[str, RuleMetadata]:
     rules: dict[str, RuleMetadata] = {}
     for config_name, item_config in configs.items():
