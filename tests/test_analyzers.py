@@ -12,8 +12,10 @@ from pyslop.analyzers.registry import (
     BUILTIN_ANALYZERS,
     analyzers_for_run,
     get_enabled_analyzers,
+    skipped_builtins_for_stage,
     stages_for_run,
 )
+from pyslop.packaged import load_packaged_rules
 from pyslop.types import (
     STAGE_CI,
     AnalyzerConfig,
@@ -83,6 +85,63 @@ def test_get_enabled_analyzers_keeps_existing_builtin_name_resolution() -> None:
         "ruff",
         "too-many-module-functions",
     ]
+
+
+# Why this test survives refactoring: import boundaries are a default index analyzer.
+def test_import_boundaries_is_always_on_index_builtin() -> None:
+    analyzers = get_enabled_analyzers(
+        PyslopConfig(),
+        available=lambda name: name == "lint-imports",
+    )
+
+    spec = next(item for item in analyzers if item.name == "import-boundaries")
+    assert spec == AnalyzerSpec(
+        name="import-boundaries",
+        inputs="index",
+        index_roots=(".",),
+    )
+    selected = analyzers_for_run(
+        PyslopConfig(),
+        stages_for_run(None),
+        available=lambda name: name == "lint-imports",
+    )
+    assert "import-boundaries" in [item.name for item in selected]
+
+
+# Why this test survives refactoring: a missing checker is a skip, and disable removes it.
+def test_import_boundaries_skips_when_missing_and_obeys_disable() -> None:
+    skipped = skipped_builtins_for_stage(
+        PyslopConfig(),
+        stages_for_run(None),
+        available=lambda name: False,
+    )
+    assert ("import-boundaries", "executable not on PATH") in skipped
+
+    disabled = get_enabled_analyzers(
+        PyslopConfig(disabled_analyzers=frozenset({"import-boundaries"})),
+        available=lambda name: True,
+    )
+    assert "import-boundaries" not in [item.name for item in disabled]
+
+
+# Why this test survives refactoring: packaged fix hints are the agent contract.
+def test_packaged_import_boundary_rules_reject_hiding() -> None:
+    rules = load_packaged_rules()
+    expected = {
+        "import-boundaries.acyclic-siblings",
+        "import-boundaries.independence",
+        "import-boundaries.layers",
+        "import-boundaries.forbidden",
+        "import-boundaries.protected",
+    }
+    assert expected <= set(rules)
+    for rule_id in expected:
+        fix = rules[rule_id].fix
+        assert "re-export" in fix
+        assert "pass-through" in fix
+        assert "lazy import" in fix
+        assert "TYPE_CHECKING" in fix
+        assert "Do not hide" in fix
 
 
 # Why this test survives refactoring: builtin pylint is CI-only in the public spec.

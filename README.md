@@ -102,7 +102,9 @@ select = []
 ignore = ["ruff-PLR0913"]
 ```
 
-`select` and `ignore` use fnmatch against pyslop rule ids (`ruff-*`, `slop-words.*`, `too-many-module-functions`). The AST builtin `too-many-module-functions` is always on (default 10 public module-level functions; `_` names, methods, and nested defs do not count). Overlay `max-module-functions` in that analyzer's config.
+`select` and `ignore` use fnmatch against pyslop rule ids (`ruff-*`, `slop-words.*`, `too-many-module-functions`, `import-boundaries.*`). The AST builtin `too-many-module-functions` is always on (default 10 public module-level functions; `_` names, methods, and nested defs do not count). Overlay `max-module-functions` in that analyzer's config.
+
+`import-boundaries` ships in the `analyzers` extra and runs when `lint-imports` is on PATH. It checks import contracts on a default `pyslop run`. Turn it off with `analyzers.disable = ["import-boundaries"]`.
 
 ## Regex rules
 

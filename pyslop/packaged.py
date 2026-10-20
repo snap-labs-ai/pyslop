@@ -3,6 +3,7 @@ from __future__ import annotations
 from functools import cache
 from importlib import resources
 from pathlib import Path
+
 import tomllib
 
 from pyslop.cache import cache_root, fingerprint
@@ -17,6 +18,7 @@ PACKAGED_ANALYZER_FILES: dict[str, tuple[str, str]] = {
     "complexipy": ("complexipy", "config.toml"),
     "detect-secrets": ("detect_secrets", "config.toml"),
     "too-many-module-functions": ("too_many_module_functions", "config.toml"),
+    "import-boundaries": ("import_boundaries", "config.toml"),
 }
 
 

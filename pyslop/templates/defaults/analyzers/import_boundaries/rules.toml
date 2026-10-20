@@ -1,0 +1,19 @@
+[rules."import-boundaries.acyclic-siblings"]
+name = "acyclic-siblings"
+fix = "Delete the import that closes the cycle. Move the shared name to the sibling that does not import back, or to a module both already depend on. Do not hide the import with a re-export, a pass-through, a lazy import, or a TYPE_CHECKING import."
+
+[rules."import-boundaries.independence"]
+name = "independence"
+fix = "Delete the cross-feature import. If both need the type, put it in a module neither feature owns. Do not hide the import with a re-export, a pass-through, a lazy import, or a TYPE_CHECKING import."
+
+[rules."import-boundaries.layers"]
+name = "layers"
+fix = "Point the dependency inward. Do not add a sibling package to get off the layer list. Extend a layer that already exists. Do not hide the import with a re-export, a pass-through, a lazy import, or a TYPE_CHECKING import."
+
+[rules."import-boundaries.forbidden"]
+name = "forbidden"
+fix = "Remove the import and call the public interface of the inner layer. Do not hide the import with a re-export, a pass-through, a lazy import, or a TYPE_CHECKING import."
+
+[rules."import-boundaries.protected"]
+name = "protected"
+fix = "Import the parent package's public API. Do not reach into a private package, migrations, or conftest. Do not hide the import with a re-export, a pass-through, a lazy import, or a TYPE_CHECKING import."

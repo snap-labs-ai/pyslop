@@ -12,6 +12,7 @@ from typing import Protocol
 from pyslop.analyzers import (
     complexipy,
     detect_secrets,
+    import_boundaries,
     mypy,
     pylint,
     regex,
@@ -68,7 +69,8 @@ class AnalyzerModule(Protocol):
         files: list[str],
         repo_root: Path,
         config: AnalyzerConfig,
-        _executor: object | None = None,
+        executor: object | None = None,
+        /,
     ) -> AnalyzerRunResult: ...
 
 
@@ -278,6 +280,7 @@ def _run_analyzers(
         "vulture": vulture,
         "complexipy": complexipy,
         DETECT_SECRETS_ANALYZER_NAME: detect_secrets,
+        "import-boundaries": import_boundaries,
         "too-many-module-functions": too_many_module_functions,
     }
     for spec in analyzers_for_run(params.config, params.stages, rules=params.rules):
