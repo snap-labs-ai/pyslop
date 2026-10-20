@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import configparser
 import importlib
 import importlib.util
 import sys
@@ -9,9 +10,12 @@ from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
 from types import ModuleType
-from typing import Protocol
+from typing import TYPE_CHECKING, Protocol
 
-from grimp import ImportGraph
+import tomllib
+
+if TYPE_CHECKING:
+    from grimp import ImportGraph
 
 from pyslop.analyzers.base import PYTHON_SOURCE_SUFFIXES
 from pyslop.analyzers.import_boundaries.discover import (
@@ -41,6 +45,7 @@ class _GraphReady:
     root_names: list[str]
     host: _HostConfig | None
     session_options: dict[str, object]
+    host_error: str | None = None
 
 
 @dataclass(frozen=True)
@@ -68,13 +73,23 @@ def run(
 def _prepare_graph(files: list[str], repo_root: Path) -> _GraphReady | AnalyzerRunResult:
     if not any(Path(path).suffix in PYTHON_SOURCE_SUFFIXES for path in files):
         return AnalyzerRunResult()
-    _ensure_configured()
+    return _prepare_import_graph(repo_root)
+
+
+def _prepare_import_graph(repo_root: Path) -> _GraphReady | AnalyzerRunResult:
+    try:
+        _ensure_configured()
+    except ModuleNotFoundError:
+        return AnalyzerRunResult(
+            skipped=(("import-boundaries", "executable not on PATH"),)
+        )
     roots = discover_root_packages(repo_root)
-    host = _read_host(repo_root)
+    host, host_error = _load_host(repo_root)
     root_names = _root_names(roots, host)
     if not root_names:
-        return AnalyzerRunResult()
-    return _build_ready(repo_root, roots, root_names, host)
+        errors = () if host_error is None else (host_error,)
+        return AnalyzerRunResult(errors=errors)
+    return _with_host_error(_build_ready(repo_root, roots, root_names, host), host_error)
 
 
 def _root_names(
@@ -104,7 +119,7 @@ def _build_ready(
     try:
         with _isolated_modules(root_names):
             graph = _build_graph(root_names, include_external)
-            module_files = _module_files(graph.modules, repo_root)
+            module_files = _module_files(graph.modules, repo_root, roots)
     except Exception as exc:  # noqa: BLE001 - graph failures stay on this analyzer.
         return AnalyzerRunResult(
             errors=(f"import-boundaries failed to build the import graph: {exc}",)
@@ -143,6 +158,8 @@ def _collect_findings(
         )
         findings.extend(item_findings)
         errors.extend(item_errors)
+    if ready.host_error is not None:
+        errors.append(ready.host_error)
     return AnalyzerRunResult(findings=tuple(_dedupe(findings)), errors=tuple(errors))
 
 
@@ -175,6 +192,43 @@ def _register_contracts(host: _HostConfig | None) -> None:
     if host is not None:
         for name, contract_class in _get_plugin_contract_types(host):
             registry.register(contract_class, name)
+
+
+def _load_host(repo_root: Path) -> tuple[_HostConfig | None, str | None]:
+    try:
+        return _read_host(repo_root), None
+    except (
+        tomllib.TOMLDecodeError,
+        configparser.Error,
+        UnicodeError,
+        OSError,
+        KeyError,
+        TypeError,
+        ValueError,
+    ) as exc:
+        return None, f"import-boundaries could not read host configuration: {exc}"
+
+
+def _with_host_error(
+    ready: _GraphReady | AnalyzerRunResult, host_error: str | None
+) -> _GraphReady | AnalyzerRunResult:
+    if host_error is None:
+        return ready
+    if isinstance(ready, AnalyzerRunResult):
+        return AnalyzerRunResult(
+            findings=ready.findings,
+            errors=(*ready.errors, host_error),
+            skipped=ready.skipped,
+        )
+    return _GraphReady(
+        ready.graph,
+        ready.module_files,
+        ready.roots,
+        ready.root_names,
+        ready.host,
+        ready.session_options,
+        host_error,
+    )
 
 
 def _read_host(repo_root: Path) -> _HostConfig | None:
@@ -259,21 +313,95 @@ def _restore_sys_path(inserted: list[str]) -> None:
             sys.path.remove(parent)
 
 
-def _module_files(modules: Iterable[str], repo_root: Path) -> dict[str, str]:
+def _module_files(
+    modules: Iterable[str], repo_root: Path, roots: tuple[RootPackage, ...]
+) -> dict[str, str]:
     files: dict[str, str] = {}
-    root = repo_root.resolve()
+    packages = {root.name: root.directory for root in roots}
+    resolved_root = repo_root.resolve()
     for name in modules:
-        spec = importlib.util.find_spec(name)
-        origin = getattr(spec, "origin", None) if spec is not None else None
-        if not origin:
+        path = _module_path(name, packages)
+        if path is None:
             continue
-        path = Path(origin)
         try:
-            relative = path.resolve().relative_to(root)
+            relative = path.resolve().relative_to(resolved_root)
         except ValueError:
             continue
         files[name] = relative.as_posix()
     return files
+
+
+def _module_path(name: str, packages: Mapping[str, Path]) -> Path | None:
+    head, _, rest = name.partition(".")
+    base = packages.get(head)
+    if base is not None:
+        if not rest:
+            return _existing_module_file(base)
+        return _child_file(base, rest)
+    return _unregistered_module_path(name)
+
+
+def _child_file(base: Path, rest: str) -> Path | None:
+    current = base
+    parts = rest.split(".")
+    for part in parts[:-1]:
+        current = current / part
+        if not _is_package_dir(current):
+            return None
+    return _existing_module_file(current / parts[-1])
+
+
+def _existing_module_file(path: Path) -> Path | None:
+    for name in ("__init__.py", "__init__.pyi"):
+        candidate = path / name
+        if candidate.is_file():
+            return candidate
+    for suffix in (".py", ".pyi"):
+        candidate = path.with_suffix(suffix)
+        if candidate.is_file():
+            return candidate
+    return None
+
+
+def _is_package_dir(path: Path) -> bool:
+    return (path / "__init__.py").is_file() or (path / "__init__.pyi").is_file()
+
+
+def _unregistered_module_path(name: str) -> Path | None:
+    head, _, rest = name.partition(".")
+    origin = _top_level_origin(head)
+    if origin is None or (rest and origin.name not in {"__init__.py", "__init__.pyi"}):
+        return None
+    if not rest:
+        return origin
+    return _child_file(origin.parent, rest)
+
+
+def _top_level_origin(name: str) -> Path | None:
+    origin = _find_origin(name)
+    if origin is None:
+        return None
+    path = Path(origin)
+    if path.is_file():
+        return path
+    return None
+
+
+def _find_origin(name: str) -> str | None:
+    spec = _safe_spec(name)
+    origin = getattr(spec, "origin", None) if spec is not None else None
+    if isinstance(origin, str) and origin:
+        return origin
+    return None
+
+
+def _safe_spec(name: str) -> object | None:
+    if not name.isidentifier():
+        return None
+    try:
+        return importlib.util.find_spec(name)
+    except (ImportError, ValueError):
+        return None
 
 
 def _selected_paths(files: list[str], repo_root: Path) -> set[str]:

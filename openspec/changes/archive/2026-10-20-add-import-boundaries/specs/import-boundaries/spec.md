@@ -167,7 +167,7 @@ A package whose name is `internal`, `impl`, `_impl`, or starts with `_` MUST NOT
 A `migrations` package and a `conftest` module MUST NOT be imported from outside that package or module and its descendants.
 
 #### Scenario: Application imports a migration
-- **WHEN** `app.models` imports `app.migrations.versions.0001`
+- **WHEN** `app.models` imports `app.migrations.versions.m0001`
 - **THEN** the import site has an `import-boundaries.protected` finding
 
 ### Requirement: SDKs stay in the outer tier

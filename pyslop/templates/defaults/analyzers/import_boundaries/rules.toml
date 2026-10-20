@@ -12,7 +12,7 @@ fix = "Point the dependency inward. Do not add a sibling package to get off the 
 
 [rules."import-boundaries.forbidden"]
 name = "forbidden"
-fix = "Remove the import and call the public interface of the inner layer. Do not hide the import with a re-export, a pass-through, a lazy import, or a TYPE_CHECKING import."
+fix = "Remove the import. Move test helpers into the tests tree, move shared code out of the program entrypoint into a library module, and keep SDK calls in an outer-tier adapter that the inner layer reaches through its own interface. Do not hide the import with a re-export, a pass-through, a lazy import, or a TYPE_CHECKING import."
 
 [rules."import-boundaries.protected"]
 name = "protected"

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import subprocess
 import sys
 from pathlib import Path
 
@@ -571,6 +572,69 @@ as_packages = false
         and "app.legacy" in item.message
         for item in found
     )
+
+
+# Why this test survives refactoring: a package init must not run while paths are resolved.
+def test_package_init_side_effects_do_not_run(tmp_path: Path) -> None:
+    marker = tmp_path / "executed.txt"
+    write(
+        tmp_path,
+        {
+            "app/__init__.py": f"open({str(marker)!r}, 'w', encoding='utf-8').write('x')\n",
+            "app/left.py": "from app.right import VALUE\nVALUE = 1\n",
+            "app/right.py": "from app.left import VALUE\nVALUE = 2\n",
+        },
+    )
+
+    found = analyze_tree(tmp_path)
+
+    assert not marker.exists()
+    assert "import-boundaries.acyclic-siblings" in rule_ids(found)
+
+
+# Why this test survives refactoring: a broken host file is an error and generated checks still run.
+def test_malformed_host_configuration_is_an_analyzer_error(tmp_path: Path) -> None:
+    write(
+        tmp_path,
+        {
+            "app/__init__.py": "",
+            "app/left.py": "from app.right import VALUE\nVALUE = 1\n",
+            "app/right.py": "from app.left import VALUE\nVALUE = 2\n",
+            "pyproject.toml": "[tool.importlinter\n",
+        },
+    )
+
+    result = analyze(python_files(tmp_path), tmp_path, AnalyzerConfig())
+
+    assert result.errors
+    assert "could not read host configuration" in result.errors[0]
+    assert "import-boundaries.acyclic-siblings" in rule_ids(result.findings)
+
+
+# Why this test survives refactoring: a base install must import the runner without grimp.
+def test_loading_the_analyzer_does_not_import_grimp() -> None:
+    script = """
+import sys
+
+class _BlockGrimp:
+    def find_spec(self, fullname, path, target=None):
+        if fullname == "grimp" or fullname.startswith("grimp."):
+            raise ModuleNotFoundError(fullname)
+        return None
+
+sys.meta_path.insert(0, _BlockGrimp())
+import pyslop.runner
+import pyslop.analyzers.import_boundaries
+import pyslop.analyzers.import_boundaries.plan
+"""
+    completed = subprocess.run(
+        [sys.executable, "-c", script],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert completed.returncode == 0, completed.stderr
 
 
 # Why this test survives refactoring: a bad host contract is an error, not a crash.
