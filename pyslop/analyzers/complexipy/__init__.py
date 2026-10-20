@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import subprocess
 import tempfile
-import tomllib
 from pathlib import Path
+
+import tomllib
 
 from pyslop.analyzers.base import (
     Executor,
@@ -167,7 +168,7 @@ def _run_complexipy_command(
         execution_result = AnalyzerRunResult(
             errors=(f"complexipy failed with exit code {exc.returncode}{suffix}",)
         )
-    except Exception as exc:
+    except OSError as exc:
         execution_result = AnalyzerRunResult(
             errors=(f"complexipy failed to execute: {exc}",)
         )
@@ -177,7 +178,7 @@ def _run_complexipy_command(
 def _parse_complexipy_findings(raw: str) -> AnalyzerRunResult:
     try:
         return AnalyzerRunResult(findings=tuple(parse_output(raw)))
-    except Exception as exc:
+    except (ValueError, TypeError, UnicodeError) as exc:
         return AnalyzerRunResult(
             errors=(f"complexipy produced unparseable output: {exc}",)
         )

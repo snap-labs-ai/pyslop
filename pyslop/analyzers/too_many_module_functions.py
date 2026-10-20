@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import ast
-import tomllib
 from pathlib import Path
+
+import tomllib
 
 from pyslop.analyzers.base import python_source_files
 from pyslop.types import AnalyzerConfig, AnalyzerRunResult, Finding

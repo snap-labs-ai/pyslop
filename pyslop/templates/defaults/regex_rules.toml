@@ -17,6 +17,7 @@ ignore = [
   "uv.lock",
   "**/uv.lock",
   "pyslop_extensions/**",
+  "examples/pyslop_extensions/**",
   "pyslop/**",
 ]
 

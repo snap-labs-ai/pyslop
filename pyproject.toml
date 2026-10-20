@@ -27,6 +27,7 @@ analyzers = [
   "vulture",
   "complexipy",
   "detect-secrets",
+  "import-linter",
 ]
 
 [project.scripts]

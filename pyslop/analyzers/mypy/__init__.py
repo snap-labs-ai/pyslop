@@ -6,12 +6,11 @@ from pathlib import Path
 from pyslop.analyzers.base import (
     CommandSpec,
     Executor,
-    tool_command,
     python_source_files,
     run_command,
+    tool_command,
 )
 from pyslop.types import AnalyzerConfig, AnalyzerRunResult, Finding
-
 
 MYPY_PATTERN = re.compile(
     r"^(?P<path>.+?):(?P<line>\d+):(?:(?P<column>\d+):)? (?P<kind>error|note|warning): (?P<message>.+?)(?: \[(?P<code>[-a-z0-9_]+)\])?$"

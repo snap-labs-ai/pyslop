@@ -80,14 +80,15 @@ def _scan_file(
 
 
 def _matches_any(path: PurePosixPath, patterns: tuple[str, ...]) -> bool:
+    return any(_matches(path, pattern) for pattern in patterns)
+
+
+def _matches(path: PurePosixPath, pattern: str) -> bool:
     text = path.as_posix()
-    for pattern in patterns:
-        if path.match(pattern):
-            return True
-        if pattern.startswith("**/") and path.match(pattern.removeprefix("**/")):
-            return True
-        if pattern.endswith("/**"):
-            prefix = pattern.removesuffix("/**").rstrip("/")
-            if text == prefix or text.startswith(f"{prefix}/"):
-                return True
-    return False
+    bare = pattern.removeprefix("**/") if pattern.startswith("**/") else ""
+    if path.match(pattern) or (bare and path.match(bare)):
+        return True
+    if not pattern.endswith("/**"):
+        return False
+    prefix = pattern.removesuffix("/**").rstrip("/")
+    return text == prefix or text.startswith(f"{prefix}/")

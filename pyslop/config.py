@@ -1,7 +1,9 @@
 from __future__ import annotations
 
-import tomllib
 from dataclasses import replace
+from pathlib import Path
+
+import tomllib
 
 from pyslop.types import (
     ALLOWED_DETECT_KINDS,
@@ -11,8 +13,8 @@ from pyslop.types import (
     INPUTS_INDEX,
     STAGE_ALWAYS,
     AnalyzerConfig,
-    PyslopConfig,
     ExtensionConfig,
+    PyslopConfig,
     RuleMetadata,
 )
 

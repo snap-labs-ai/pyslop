@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import errno
 import json
 import shutil
 import subprocess
@@ -10,7 +11,6 @@ from pathlib import Path
 from subprocess import CompletedProcess
 
 from pyslop.types import AnalyzerRunResult, Finding
-
 
 Executor = Callable[[Sequence[str]], CompletedProcess[str]]
 DEFAULT_FAILURE_CODES = (2,)
@@ -42,44 +42,72 @@ def run_command(
     spec: CommandSpec,
     executor: Executor | None = None,
 ) -> AnalyzerRunResult:
-    runner = executor or _subprocess_run
-    findings: tuple[Finding, ...] = ()
-    errors: tuple[str, ...] = ()
-    result: CompletedProcess[str] | None = None
+    result, errors = _invoke(spec, executor or _subprocess_run)
+    if errors or result is None:
+        skipped = () if errors else ((spec.name, "executable not on PATH"),)
+        return AnalyzerRunResult(errors=errors, skipped=skipped)
+    if result.returncode in spec.failure_codes:
+        return AnalyzerRunResult(errors=(_exit_failure(spec.name, result),))
+    findings, parsed_errors = _parsed_findings(spec, result.stdout)
+    return AnalyzerRunResult(findings=findings, errors=parsed_errors)
+
+
+def _invoke(
+    spec: CommandSpec, runner: Executor
+) -> tuple[CompletedProcess[str] | None, tuple[str, ...]]:
     try:
-        result = runner(spec.command)
-    except subprocess.TimeoutExpired as exc:
+        return runner(spec.command), ()
+    except (subprocess.TimeoutExpired, subprocess.CalledProcessError, OSError) as exc:
+        return _invoke_failure(spec.name, exc)
+
+
+def _invoke_failure(
+    name: str,
+    exc: subprocess.TimeoutExpired | subprocess.CalledProcessError | OSError,
+) -> tuple[None, tuple[str, ...]]:
+    message = _failure_text(name, exc)
+    if message is None:
+        return None, ()
+    return None, (message,)
+
+
+def _failure_text(
+    name: str,
+    exc: subprocess.TimeoutExpired | subprocess.CalledProcessError | OSError,
+) -> str | None:
+    if isinstance(exc, subprocess.TimeoutExpired):
         timeout = f"{exc.timeout}s" if exc.timeout is not None else "unknown timeout"
-        errors = (f"{spec.name} timed out after {timeout}",)
-    except subprocess.CalledProcessError as exc:
-        detail = (exc.stderr or exc.stdout or str(exc)).strip()
-        suffix = f": {detail}" if detail else ""
-        errors = (f"{spec.name} failed with exit code {exc.returncode}{suffix}",)
-    except Exception as exc:
-        if _cannot_start(exc):
-            return AnalyzerRunResult(skipped=((spec.name, "executable not on PATH"),))
-        errors = (_started_failure_message(spec.name, exc),)
-    if not errors and result and result.returncode in spec.failure_codes:
-        detail = (result.stderr or result.stdout).strip()
-        suffix = f": {detail}" if detail else ""
-        errors = (f"{spec.name} failed with exit code {result.returncode}{suffix}",)
-    if not errors and result:
-        try:
-            findings = tuple(spec.parse_output(result.stdout))
-        except Exception as exc:
-            errors = (f"{spec.name} produced unparseable output: {exc}",)
-    return AnalyzerRunResult(findings=findings, errors=errors)
+        return f"{name} timed out after {timeout}"
+    if isinstance(exc, subprocess.CalledProcessError):
+        return _called_process_failure(name, exc)
+    return None if _cannot_start(exc) else _started_failure_message(name, exc)
 
 
-def _cannot_start(exc: BaseException) -> bool:
+def _called_process_failure(name: str, exc: subprocess.CalledProcessError) -> str:
+    detail = (exc.stderr or exc.stdout or str(exc)).strip()
+    suffix = f": {detail}" if detail else ""
+    return f"{name} failed with exit code {exc.returncode}{suffix}"
+
+
+def _exit_failure(name: str, result: CompletedProcess[str]) -> str:
+    detail = (result.stderr or result.stdout).strip()
+    suffix = f": {detail}" if detail else ""
+    return f"{name} failed with exit code {result.returncode}{suffix}"
+
+
+def _parsed_findings(
+    spec: CommandSpec, stdout: str
+) -> tuple[tuple[Finding, ...], tuple[str, ...]]:
+    try:
+        return tuple(spec.parse_output(stdout)), ()
+    except (ValueError, TypeError, UnicodeError) as exc:
+        return (), (f"{spec.name} produced unparseable output: {exc}",)
+
+
+def _cannot_start(exc: OSError) -> bool:
     if isinstance(exc, FileNotFoundError):
         return True
-    if isinstance(exc, OSError):
-        if exc.errno == 2:
-            return True
-        if getattr(exc, "winerror", None) == 2:
-            return True
-    return False
+    return exc.errno == errno.ENOENT or getattr(exc, "winerror", None) == errno.ENOENT
 
 
 def _started_failure_message(name: str, exc: BaseException) -> str:

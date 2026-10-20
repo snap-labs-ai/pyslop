@@ -6,14 +6,14 @@ from typing import Protocol
 from pyslop.types import (
     DEFAULT_RUN_STAGES,
     DETECT_KIND_REGEX,
+    INPUTS_INDEX,
     REGEX_ANALYZER_NAME,
     STAGE_CI,
     AnalyzerSpec,
-    PyslopConfig,
     ExtensionConfig,
+    PyslopConfig,
     RuleMetadata,
 )
-
 
 BUILTIN_ANALYZERS = (
     "ruff",
@@ -22,10 +22,14 @@ BUILTIN_ANALYZERS = (
     "vulture",
     "complexipy",
     "detect-secrets",
+    "import-boundaries",
     "too-many-module-functions",
 )
 ALWAYS_AVAILABLE_BUILTINS = frozenset({"too-many-module-functions"})
-EXECUTABLE_MAP = {"detect-secrets": "detect-secrets-hook"}  # pragma: allowlist secret
+EXECUTABLE_MAP = {
+    "detect-secrets": "detect-secrets-hook",  # pragma: allowlist secret
+    "import-boundaries": "lint-imports",
+}
 SKIP_REASON_NOT_ON_PATH = "executable not on PATH"
 
 
@@ -41,6 +45,11 @@ BUILTIN_SPECS: dict[str, AnalyzerSpec] = {
     "vulture": AnalyzerSpec(name="vulture"),
     "complexipy": AnalyzerSpec(name="complexipy"),
     "detect-secrets": AnalyzerSpec(name="detect-secrets"),
+    "import-boundaries": AnalyzerSpec(
+        name="import-boundaries",
+        inputs=INPUTS_INDEX,
+        index_roots=(".",),
+    ),
     "too-many-module-functions": AnalyzerSpec(name="too-many-module-functions"),
 }
 REGEX_SPEC = AnalyzerSpec(name=REGEX_ANALYZER_NAME)

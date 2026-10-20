@@ -71,9 +71,8 @@ def _parse_python_tree(filepath: Path) -> ast.AST | None:
         source = filepath.read_text(encoding="utf-8")
         return ast.parse(source, filename=str(filepath))
     except (OSError, SyntaxError, UnicodeDecodeError) as exc:
-        print(
-            f"detect_shims: skipped {filepath.as_posix()}: {type(exc).__name__}: {exc}",
-            file=sys.stderr,
+        sys.stderr.write(
+            f"detect_shims: skipped {filepath.as_posix()}: {type(exc).__name__}: {exc}\n"
         )
         return None
 
